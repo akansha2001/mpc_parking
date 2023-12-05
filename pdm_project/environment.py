@@ -3,15 +3,20 @@ from urdfenvs.robots.prius import Prius
 import importlib
 import numpy as np
 
-def get_gobal_path():
-    pass
-
-def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
+def get_robots():
     robots = [
         Prius(mode="vel"),
         Prius(mode="vel"),
     ]
-    
+    return robots
+
+def get_obstacles():
+    # TODO: Akansha
+    # YOUR CODE HERE
+    pass
+
+def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
+    robots = get_robots()
     env = gym.make(
         "urdf-env-v0",
         dt=0.01, robots=robots, render=render
@@ -21,15 +26,16 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     # if there are multiple robots, actions are concatenated into a single 1D array
     n = env.n() # returns the number of actions possible in the whole environment
 
-    # initialize an array 'action' with n elements, each set to -0.2
+    # initialize an array 'action' with n elements
     action = np.ones(n) * 0.1
 
+    # the size of the state variable ()
     ns_per_robot = env.ns_per_robot()
     print("ns_per_robot:", ns_per_robot)
     n_per_robot = env.n_per_robot()
     print("n_per_robot:", n_per_robot)
 
-    # breakpoint()
+    breakpoint()
 
     # initial_positions = np.array([np.zeros(n) for n in ns_per_robot])
     initial_positions = np.array([[0.0, 0.0, 0.0], [3.0, 3.0, -1.57]])
@@ -40,10 +46,9 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     #         initial_positions[i][0:2] = np.array([0.0, i])
 
     # creating an array 'mount_positions' with initial mount positions for each robot
-    mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
+    # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
     # resetting the environment with the specified initial positions and mount positions
-    ob = env.reset(pos=initial_positions, mount_positions=mount_positions)
-    print("*******", mount_positions)
+    ob = env.reset(pos=initial_positions)
     # printing the initial observation
     print(f"Initial observation : {ob}")
     history = []
@@ -55,7 +60,6 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         history.append(ob)
     env.close()
     return history
-
 
 if __name__ == "__main__":
     run_prius(render=True)
