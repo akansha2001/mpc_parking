@@ -56,5 +56,6 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     env.close()
     return history
 
+
 if __name__ == "__main__":
     run_prius(render=True)

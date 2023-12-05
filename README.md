@@ -2,13 +2,22 @@
 Planning and Decision Making Project Q2
 ## Installation
 1. Install `gym_urdf_envs`
-    ```bash
-    git clone https://github.com/maxspahn/gym_envs_urdf.git
-    ```
-    Follow the README for installation instructions and make sure to install the lib using `pip3 install .`
+    * Installation from pip (Recommended) 
+        ```bash
+        pip3 install urdfenvs
+        ```
+    * Install from source (not ideal)
+        ```bash
+        cd ~
+        git clone https://github.com/maxspahn/gym_envs_urdf.git
+        cd gym_envs_urdf
+        pip3 install .
+        ```
+
+    Make sure to install the lib using `pip3 install .`!
 ## Documentation
 ### General
-* For data coming from the environment, through the variable `obs`, check `docs/obs_example.json`.
+* To understand the format of the data coming from the environment, through the variable `obs`, check `docs/obs_example.json`.
 
 ### OpenAI Gymnasium Documentation
 
