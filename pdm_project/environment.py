@@ -3,63 +3,145 @@ from urdfenvs.robots.prius import Prius
 import importlib
 import numpy as np
 
-def get_robots():
-    robots = [
-        Prius(mode="vel"),
-        Prius(mode="vel"),
-    ]
-    return robots
+from local_planner import LocalPlanner
+'''
+The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
+'''
+class Robot:
+    def __init__(self, spawn_pos: np.ndarray = np.zeros(3), model: str = "prius"):
+        # initializing robot attributes
+        self.name = "robot_"
+        self.position = np.zeros(3)
+        self.forward_velocity = np.zeros(2)
+        self.velocity = np.zeros(3)
+        self.steering = np.zeros(1)
 
-def get_obstacles():
-    # TODO: Akansha
-    # YOUR CODE HERE
-    pass
+        # checking if the specified model is "prius"
+        if model.lower() != "prius":
+            raise Exception("Invalid model. Only 'prius' model is supported.")
 
-def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
-    robots = get_robots()
-    env = gym.make(
-        "urdf-env-v0",
-        dt=0.01, robots=robots, render=render
-    )
-    # the size of "action" is the size of the command that a robot takes (if there is one robot)
-    # format: [forward velocity, yaw rate]
-    # if there are multiple robots, actions are concatenated into a single 1D array
-    n = env.n() # returns the number of actions possible in the whole environment
+        # creating a Prius model instance with "vel" mode
+        self.model = Prius(mode="vel")
+        self.spawn_pos = np.zeros(3)  # initializing spawn position
+        self.local_planner = LocalPlanner()  # creating a LocalPlanner instance
 
-    # initialize an array 'action' with n elements
-    action = np.ones(n) * 0.1
+    def set_global_target(self):
+        pass  # currently a placeholder for setting a global target for the robot
 
-    # the size of the state variable ()
-    ns_per_robot = env.ns_per_robot()
-    print("ns_per_robot:", ns_per_robot)
-    n_per_robot = env.n_per_robot()
-    print("n_per_robot:", n_per_robot)
+    def get_target(self):
+        return self.local_planner.get_target(self.position)  # currently getting the target from the local planner based on the current position
 
-    breakpoint()
+class ParkingLotEnv:
+    """
+    Environment class for simulating a parking lot scenario with multiple robots.
+    """
 
-    # initial_positions = np.array([np.zeros(n) for n in ns_per_robot])
-    initial_positions = np.array([[0.0, 0.0, 0.0], [3.0, 3.0, -1.57]])
-    # # iterating over the initial positions
-    # for i in range(len(initial_positions)):
-    #     if ns_per_robot[i] != n_per_robot[i]:
-    #         # setting the first two elements of the initial position to [0.0, i]
-    #         initial_positions[i][0:2] = np.array([0.0, i])
+    def __init__(self, render=True):
+        """
+        - the constructor initializes the robots and sets the local and global planner 
+        """
+        self.render = render   # flag to set rendering (make this false to disable the new window)
 
-    # creating an array 'mount_positions' with initial mount positions for each robot
-    # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
-    # resetting the environment with the specified initial positions and mount positions
-    ob = env.reset(pos=initial_positions)
-    # printing the initial observation
-    print(f"Initial observation : {ob}")
-    history = []
-    for i in range(n_steps):
-        ob, *_ = env.step(action)
-        # print(ob)
-        if ob['robot_0']['joint_state']['steering'] > 0.2:
-            action[1] = 0
-        history.append(ob)
-    env.close()
-    return history
+        # creating a list of robots (only 1 is needed for now)
+        self.robots = [Robot()]
+        self.robot_models = []
+        self.rob_spawn_pos = np.array([])
+        # iterating over all robots
+        for i in range(len(self.robots)):
+            # appending the index to match the naming convention as defined in the obs object
+            self.robots[i].name += str(i)
+            # appending the model list, which is later used to create the env
+            self.robot_models.append(self.robots[i].model)
+            # spawn positions extracted, again used while creating the env
+            self.rob_spawn_pos = np.append(self.rob_spawn_pos, self.robots[i].spawn_pos)
 
-if __name__ == "__main__":
-    run_prius(render=True)
+        # TODO: @Akansha: add obstacles here
+        self.obstacles = []  # obstacle list
+        self.obs_spawn_pos = np.zeros(3)
+        # YOUR CODE HERE
+
+        self.n_robots = len(self.robots)
+
+    def setup_env(self):
+        """
+        - sets up the environment for simulation
+        - creates a gym environment with specified parameters, initializes
+        the action and state sizes, and resets the environment with the specified initial positions.
+        """
+        self.env = gym.make(
+            "urdf-env-v0",
+            dt=0.01, robots=self.robot_models, render=self.render
+        )
+        # the size of "action" is the size of the command that a robot takes (if there is one robot)
+        # format: [forward velocity, yaw rate]
+        # if there are multiple robots, actions are concatenated into a single 1D array
+        # returns the number of actions possible in the whole environment
+        self.action_size = self.env.n()
+
+        # the size of the state variable (3 => x, y, theta(orientation)])
+        self.ns_per_robot = self.env.ns_per_robot()
+        print("ns_per_robot:", self.ns_per_robot)
+        # the size of the action variable (2 => forward_vel, yaw_rate)
+        self.n_per_robot = self.env.n_per_robot()
+        print("n_per_robot:", self.n_per_robot)
+
+        # resetting the environment with the specified initial positions
+        print(self.rob_spawn_pos)
+        self.ob = self.env.reset(pos=self.rob_spawn_pos)
+        # printing the initial observation
+        print(f"Initial observation : {self.ob}")
+
+    # updating the state of the robot entities
+    def update_robot_state(self):
+        """
+        - updates the state of the robots based on received joint state data from the 'obs' dictionary.
+        - it iterates through each robot, and updates its attributes based on the joint state data.
+        """
+        for robot in self.robots:
+            if robot.name in self.ob:
+                robot_data = self.ob[robot.name]
+                joint_state_data = robot_data.get('joint_state', {})
+
+                # dynamically updating robot attributes based on received joint state data
+                for key, value in joint_state_data.items():
+                    setattr(robot, key, np.array(value))
+
+
+    def get_action(self):
+        """
+        - get the concatenated action for all robots.
+
+        Returns:
+        - action (numpy.ndarray): Concatenated action array for all robots.
+        """
+        actions = []
+        for robot in self.robots:
+            actions.append(robot.get_target())
+        action = np.concatenate(actions, axis=0)
+        return action
+    
+    def run_env(self):
+        """
+        - sets up the environment, and runs the simulation loop (update states, get actions, send commands, repeat...)
+        Returns:
+        - history (list): List of observations from the simulation.
+        """
+        self.setup_env()
+        # initializing an array 'action' with n elements
+        action = np.ones(self.action_size)
+
+        history = []
+        try:
+            while True:
+                # updating all robot states (each robot in self.robots) by reading the 'obs' object
+                self.update_robot_state()
+                # getting actions from all robots based on the feedback
+                action = self.get_action()                    
+                self.ob, *_ = self.env.step(action)
+                # * uncomment the line below to store observations in a list
+                # history.append(ob)
+        except KeyboardInterrupt:
+            pass  # this block will be executed on a keyboard interrupt
+        print("\n\nEnding Simulation")
+        self.env.close()
+        return history

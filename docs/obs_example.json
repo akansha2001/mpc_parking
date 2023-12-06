@@ -1,33 +1,24 @@
-{'robot_0': {'joint_state': {'position': array([
-                0.21323112, x
-                0.00494512, y
-                0.01381366 (z/theta)?
-            ]), 'forward_velocity': array([
-                -0.20529615, (forward velocity)
-                0.03786532 (angular velocity (why?))
-            ]), 'velocity': array([
-                -0.19973064, (vx)
-                0.01309446, (vy)
-                0.03786532 (wz)
-            ]), 'steering': array([
-                -0.14999346 (steering angle)
-            ])
-        }
-    }, 
-'robot_1': {'joint_state': {'position': array([
-                2.21314153,
-                3.00497446,
-                0.01379045
-            ]), 'forward_velocity': array([
-                -0.20331354,
-                0.03879971
-            ]), 'velocity': array([
-                -0.19725347,
-                0.01251784,
-                0.03879971
-            ]), 'steering': array([
-                -0.14992697
-            ])
-        }
+{
+    "robot_0": {
+      "joint_state": {
+        "position": [
+          0.21323112,  // x
+          0.00494512,  // y
+          0.01381366   // theta
+        ],
+        "forward_velocity": [
+          -0.20529615,  // forward velocity
+          0.03786532    // angular velocity (why?)
+        ],
+        "velocity": [
+          -0.19973064,  // vx
+          0.01309446,   // vy
+          0.03786532    // wz
+        ],
+        "steering": [
+          -0.14999346   // steering angle
+        ]
+      }
     }
-}
+  }
+  

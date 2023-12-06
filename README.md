@@ -18,3 +18,27 @@ Planning and Decision Making Project Q2
 ## Documentation
 * Check out `docs/gymnasium.md` for the environment documentation
 * To understand the format of the data coming from the environment, through the variable `obs`, check `docs/obs_example.json`.
+
+## Usage
+### Running the Simulation
+```bash
+cd pdm_project
+python3 sim.py
+```
+### Using the Environment in your code
+
+```python
+# Import required libraries
+import gymnasium as gym
+from urdfenvs.robots.prius import Prius
+import numpy as np
+
+# Import the ParkingLotEnv class from your script
+from environment import ParkingLotEnv
+
+# Create an instance of the environment
+env = ParkingLotEnv(render=True)
+
+# Run the environment simulation
+env.run_env()
+```
