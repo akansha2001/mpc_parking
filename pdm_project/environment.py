@@ -2,7 +2,7 @@ import gymnasium as gym
 from urdfenvs.robots.prius import Prius
 import importlib
 import numpy as np
-
+from global_planner import GlobalPlanner
 from local_planner import LocalPlanner
 '''
 The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
@@ -24,11 +24,14 @@ class Robot:
         self.model = Prius(mode="vel")
         self.spawn_pos = np.zeros(3)  # initializing spawn position
         self.local_planner = LocalPlanner()  # creating a LocalPlanner instance
-
-    def set_global_target(self):
-        pass  # currently a placeholder for setting a global target for the robot
-
+        self.global_planner = GlobalPlanner(planner_type="dummy")
+        
+        # TODO: remove the use of dummy goal
+        dummy_goal = self.position + np.array([10.0, 0.0, 0.0]) 
+        self.global_planner.plan_global_path(spawn_pos, dummy_goal)
+    
     def get_target(self):
+        self.global_planner
         return self.local_planner.get_target(self.position)  # currently getting the target from the local planner based on the current position
 
 class ParkingLotEnv:
