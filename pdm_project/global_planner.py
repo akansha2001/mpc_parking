@@ -1,8 +1,8 @@
 import numpy as np
 from dummy_planner import DummyPlanner
+from rrt import RRT
 try:
      from ompl import base as ob
-     from ompl import control as oc
 except ImportError:
      # if the ompl module is not in the PYTHONPATH assume it is installed in a
      # subdirectory of the parent directory called "py-bindings."
@@ -10,7 +10,7 @@ except ImportError:
      import sys
      sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
      from ompl import base as ob
-     from ompl import control as oc
+
 class GlobalPlanner:
     def __init__(self, planner_type="dummy"):
 
@@ -22,29 +22,8 @@ class GlobalPlanner:
         initializes the global planner based on the given type
         """
         if planner_type == "rrt":
-            self.space = ob.SE2StateSpace()
-    
-            # set the bounds for the R^2 part of SE(2)
-            bounds = ob.RealVectorBounds(2)
-            bounds.setLow(-1)
-            bounds.setHigh(1)
-            self.space.setBounds(bounds)
-        
-            # create a control space
-            self.cspace = oc.RealVectorControlSpace(space, 2)
-        
-            # set the bounds for the control space
-            cbounds = ob.RealVectorBounds(2)
-            cbounds.setLow(-.3)
-            cbounds.setHigh(.3)
-            self.cspace.setBounds(cbounds)
-        
-            # define a simple setup class
-            self.ss = oc.SimpleSetup(cspace)
-            self.si = self.ss.getSpaceInformation()
-            
-            return oc.RRT(self.si)
-            
+            return RRT()
+
         elif planner_type == "dummy":
             return DummyPlanner()
         
@@ -62,7 +41,25 @@ class GlobalPlanner:
         Returns:
         - path: list of waypoints (np arrays) representing the global path.
         """
-        self.ss.setStartAndGoalStates(start, goal, 0.05)
-        self.ss.setPlanner(self.planner)
-        self.path = self.ss.getSolutionPath().printAsMatrix()
-        return self.path
+        return self.planner.plan(start,goal)
+
+if __name__ == "__main__":
+    obj=GlobalPlanner("rrt")
+    space = ob.SE2StateSpace()
+    start = ob.State(space)
+    start().setX(0)
+    start().setY(0.0)
+    start().setYaw(0.0)
+  
+     # create a goal state
+    goal = ob.State(space)
+    goal().setX(5.0)
+    goal().setY(0.5)
+    goal().setYaw(5.0)
+
+    print(obj.plan_global_path(start,goal))
+
+
+
+
+    

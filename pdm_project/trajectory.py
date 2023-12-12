@@ -23,5 +23,5 @@ class Trajectory:
             return target_index
 
         return look_ahead_idx_from(closest_index_on_trajectory())
-
+    
     
