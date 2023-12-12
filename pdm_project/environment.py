@@ -4,35 +4,42 @@ import importlib
 import numpy as np
 from global_planner import GlobalPlanner
 from local_planner import LocalPlanner
+from trajectory import State
+from trajectory import Trajectory
+import time
 '''
 The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
 '''
+
 class Robot:
     def __init__(self, spawn_pos: np.ndarray = np.zeros(3), model: str = "prius"):
         # initializing robot attributes
         self.name = "robot_"
-        self.position = np.zeros(3)
-        self.forward_velocity = np.zeros(2)
-        self.velocity = np.zeros(3)
-        self.steering = np.zeros(1)
-
         # checking if the specified model is "prius"
         if model.lower() != "prius":
             raise Exception("Invalid model. Only 'prius' model is supported.")
 
         # creating a Prius model instance with "vel" mode
         self.model = Prius(mode="vel")
-        self.spawn_pos = np.zeros(3)  # initializing spawn position
-        self.local_planner = LocalPlanner()  # creating a LocalPlanner instance
-        self.global_planner = GlobalPlanner(planner_type="dummy")
+        self.wheel_base = self.model._wheel_distance
         
+        self.state = State(L = self.wheel_base)
+        # setting the spawn position and the current position of the robot
+        self.spawn_pos = spawn_pos
+        self.state.position = spawn_pos
+
+        # initializing a global planner of a certain 'type'
+        self.global_planner = GlobalPlanner(planner_type="dummy")
         # TODO: remove the use of dummy goal
-        dummy_goal = self.position + np.array([10.0, 0.0, 0.0]) 
-        self.global_planner.plan_global_path(spawn_pos, dummy_goal)
-    
+        dummy_goal = self.state.position + np.array([10.0, 0.0, 0.0])
+        self.global_plan = self.global_planner.plan_global_path(self.state.position, dummy_goal)
+        self.local_planner = LocalPlanner(Trajectory(self.global_plan))  # creating a LocalPlanner instance
+
+
     def get_target(self):
-        self.global_planner
-        return self.local_planner.get_target(self.position)  # currently getting the target from the local planner based on the current position
+        # currently getting the target from the local planner based on the current position
+        return self.local_planner.plan(self.state)
+
 
 class ParkingLotEnv:
     """
@@ -56,7 +63,8 @@ class ParkingLotEnv:
             # appending the model list, which is later used to create the env
             self.robot_models.append(self.robots[i].model)
             # spawn positions extracted, again used while creating the env
-            self.rob_spawn_pos = np.append(self.rob_spawn_pos, self.robots[i].spawn_pos)
+            self.rob_spawn_pos = np.append(
+                self.rob_spawn_pos, self.robots[i].spawn_pos)
 
         # TODO: @Akansha: add obstacles here
         self.obstacles = []  # obstacle list
@@ -107,8 +115,8 @@ class ParkingLotEnv:
 
                 # dynamically updating robot attributes based on received joint state data
                 for key, value in joint_state_data.items():
-                    setattr(robot, key, np.array(value))
-
+                    setattr(robot.state, key, np.array(value))
+            print(robot.state.forward_velocity)
 
     def get_action(self):
         """
@@ -122,7 +130,7 @@ class ParkingLotEnv:
             actions.append(robot.get_target())
         action = np.concatenate(actions, axis=0)
         return action
-    
+
     def run_env(self):
         """
         - sets up the environment, and runs the simulation loop (update states, get actions, send commands, repeat...)
@@ -139,7 +147,7 @@ class ParkingLotEnv:
                 # updating all robot states (each robot in self.robots) by reading the 'obs' object
                 self.update_robot_state()
                 # getting actions from all robots based on the feedback
-                action = self.get_action()                    
+                action = self.get_action()
                 self.ob, *_ = self.env.step(action)
                 # * uncomment the line below to store observations in a list
                 # history.append(ob)
