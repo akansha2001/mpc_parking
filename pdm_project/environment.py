@@ -7,6 +7,7 @@ from local_planner import LocalPlanner
 from trajectory import State
 from trajectory import Trajectory
 import time
+from obstacles import static_obstacles, dynamic_obstacles, wall_obstacles
 '''
 The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
 '''
@@ -69,6 +70,10 @@ class ParkingLotEnv:
         # TODO: @Akansha: add obstacles here
         self.obstacles = []  # obstacle list
         self.obs_spawn_pos = np.zeros(3)
+
+        self.static_obstacles = static_obstacles
+        self.dynamic_obstacles = dynamic_obstacles
+        self.wall_obstacles = wall_obstacles
         # YOUR CODE HERE
 
         self.n_robots = len(self.robots)
@@ -83,6 +88,18 @@ class ParkingLotEnv:
             "urdf-env-v0",
             dt=0.01, robots=self.robot_models, render=self.render
         )
+
+        # add obstacles
+        for obs in self.static_obstacles:
+            self.env.add_obstacle(obs)
+
+        for obs in self.dynamic_obstacles:
+            self.env.add_obstacle(obs)
+
+        for obs in self.wall_obstacles:
+            self.env.add_obstacle(obs)
+
+
         # the size of "action" is the size of the command that a robot takes (if there is one robot)
         # format: [forward velocity, yaw rate]
         # if there are multiple robots, actions are concatenated into a single 1D array
@@ -116,7 +133,7 @@ class ParkingLotEnv:
                 # dynamically updating robot attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
-            print(robot.state.forward_velocity)
+            # print(robot.state.forward_velocity)
 
     def get_action(self):
         """
@@ -149,6 +166,7 @@ class ParkingLotEnv:
                 # getting actions from all robots based on the feedback
                 action = self.get_action()
                 self.ob, *_ = self.env.step(action)
+                print(self.ob)
                 # * uncomment the line below to store observations in a list
                 # history.append(ob)
         except KeyboardInterrupt:
