@@ -43,7 +43,13 @@ class RRT():
         self.si.setPropagationStepSize(.5)
         self.planner=oc.RRT(self.si)
 
-    def plan(self, x_start,y_start,yaw_start,x_goal,y_goal,yaw_goal):
+    def plan(self, start, goal):
+        x_start ,y_start ,yaw_start = start[0], start[1], start[2]
+
+        x_goal = goal[0]
+        y_goal = goal[1]
+        yaw_goal = goal[2]
+
         start=ob.State(self.space)
         end=ob.State(self.space)
         start().setX(x_start)
@@ -63,9 +69,12 @@ class RRT():
             self.states_final=self.data_array[:,0:3]
             self.controls=self.data_array[:,3:5]
             print(self.states_final)
-            print(self.controls)
+            #print(self.controls)
         else:
             print("No solution found")
+            self.states_final=np.zeros((100,3))
+        
+        return self.states_final
 
     def collision_checker(self):
         def isStateValid(spaceInformation, state):

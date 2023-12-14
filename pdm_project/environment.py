@@ -30,7 +30,7 @@ class Robot:
         self.state.position = spawn_pos
 
         # initializing a global planner of a certain 'type'
-        self.global_planner = GlobalPlanner(planner_type="dummy")
+        self.global_planner = GlobalPlanner(planner_type="rrt")
         # TODO: remove the use of dummy goal
         dummy_goal = self.state.position + np.array([10.0, 0.0, 0.0])
         self.global_plan = self.global_planner.plan_global_path(self.state.position, dummy_goal)
@@ -166,7 +166,6 @@ class ParkingLotEnv:
                 # getting actions from all robots based on the feedback
                 action = self.get_action()
                 self.ob, *_ = self.env.step(action)
-                print(self.ob)
                 # * uncomment the line below to store observations in a list
                 # history.append(ob)
         except KeyboardInterrupt:
