@@ -3,16 +3,16 @@ import numpy as np
 from dummy_planner import DummyPlanner
 from rrt import RRT
 class GlobalPlanner:
-    def __init__(self, planner_type="dummy"):
+    def __init__(self, planner_type="dummy",obstacles=None):
         # initializing the planner based on type
         self.planner = self._initialize_planner(planner_type)
-
+        self.obstacles=obstacles
     def _initialize_planner(self, planner_type):
         """
         initializes the global planner based on the given type
         """
         if planner_type == "rrt":
-            return RRT()  # replace with the actual RRT planner class
+            return RRT(obstacles=self.obstacles)  # replace with the actual RRT planner class
         elif planner_type == "dummy":
             return DummyPlanner()
         else:

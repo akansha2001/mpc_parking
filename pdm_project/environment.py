@@ -33,7 +33,7 @@ class Robot:
         self.obstacles = obstacles or []
 
         # initializing a global planner of a certain 'type'
-        self.global_planner = GlobalPlanner(planner_type="dummy", obst = self.obstacles)
+        self.global_planner = GlobalPlanner(planner_type="rrt",obstacles=self.obstacles)
         # TODO: remove the use of dummy goal
         dummy_goal = self.state.position + np.array([10.0, 0.0, 0.0])
         self.global_plan = self.global_planner.plan_global_path(self.state.position, dummy_goal)
@@ -67,7 +67,7 @@ class ParkingLotEnv:
         if self.stat_obs_flag:
             self.static_obstacles = static_obstacles
             self.wall_obstacles = wall_obstacles
-            self.obstacles = static_obstacles + wall_obstacles
+            #self.obstacles = static_obstacles + wall_obstacles
         if self.dyn_obs_flag:
             self.dynamic_obstacles = dynamic_obstacles
 
@@ -81,9 +81,8 @@ class ParkingLotEnv:
             self.rob_spawn_pos = np.append(
                 self.rob_spawn_pos, self.robots[i].spawn_pos)
 
-
+            self.robots[i].obstacles=self.static_obstacles
         
-
         self.n_robots = len(self.robots)
 
     def setup_env(self):
