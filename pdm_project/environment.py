@@ -13,7 +13,7 @@ The Robot class describes a robot :). It contains the robot model (from class Pr
 '''
 
 class Robot:
-    def __init__(self, spawn_pos: np.ndarray = np.zeros(3), model: str = "prius"):
+    def __init__(self, spawn_pos: np.ndarray = np.zeros(3), model: str = "prius", obstacles=None):
         # initializing robot attributes
         self.name = "robot_"
         # checking if the specified model is "prius"
@@ -29,8 +29,11 @@ class Robot:
         self.spawn_pos = spawn_pos
         self.state.position = spawn_pos
 
+        #setting obstacles to given obstacles or defaulting to an empty list
+        self.obstacles = obstacles or []
+
         # initializing a global planner of a certain 'type'
-        self.global_planner = GlobalPlanner(planner_type="dummy")
+        self.global_planner = GlobalPlanner(planner_type="dummy", obst = self.obstacles)
         # TODO: remove the use of dummy goal
         dummy_goal = self.state.position + np.array([10.0, 0.0, 0.0])
         self.global_plan = self.global_planner.plan_global_path(self.state.position, dummy_goal)
@@ -59,7 +62,16 @@ class ParkingLotEnv:
         self.robots = [Robot()]
         self.robot_models = []
         self.rob_spawn_pos = np.array([])
-        # iterating over all robots
+
+        # assigning obstacles to class members
+        if self.stat_obs_flag:
+            self.static_obstacles = static_obstacles
+            self.wall_obstacles = wall_obstacles
+            self.obstacles = static_obstacles + wall_obstacles
+        if self.dyn_obs_flag:
+            self.dynamic_obstacles = dynamic_obstacles
+
+        # iterating over all robotsF
         for i in range(len(self.robots)):
             # appending the index to match the naming convention as defined in the obs object
             self.robots[i].name += str(i)
@@ -70,12 +82,7 @@ class ParkingLotEnv:
                 self.rob_spawn_pos, self.robots[i].spawn_pos)
 
 
-        # assigning obstacles to class members
-        if self.stat_obs_flag:
-            self.static_obstacles = static_obstacles
-            self.wall_obstacles = wall_obstacles
-        if self.dyn_obs_flag:
-            self.dynamic_obstacles = dynamic_obstacles
+        
 
         self.n_robots = len(self.robots)
 
