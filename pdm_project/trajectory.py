@@ -22,15 +22,18 @@ class State:
         return self.forward_velocity[0]
     
     def get_rear_x(self):
-        # TODO: check the assumption of L/2
         rear_x = self.position[0] - (self.L / 2) * np.cos(self.position[2])
         return rear_x
 
     def get_rear_y(self):
-        # TODO: check the assumption of L/2
         rear_y = self.position[1] - (self.L / 2) * np.sin(self.position[2])
         return rear_y
 
+    def get_distance(self, x, y):
+        dx = x - self.position[0]
+        dy = y - self.position[1]
+        return np.hypot(dx, dy)
+    
 class Trajectory:
     def __init__(self, points):
         # converting to an np array

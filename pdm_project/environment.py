@@ -30,7 +30,7 @@ class Robot:
         self.state.position = spawn_pos
 
         # initializing a global planner of a certain 'type'
-        self.global_planner = GlobalPlanner(planner_type="rrt")
+        self.global_planner = GlobalPlanner(planner_type="dummy")
         # TODO: remove the use of dummy goal
         dummy_goal = self.state.position + np.array([10.0, 0.0, 0.0])
         self.global_plan = self.global_planner.plan_global_path(self.state.position, dummy_goal)
@@ -47,11 +47,13 @@ class ParkingLotEnv:
     Environment class for simulating a parking lot scenario with multiple robots.
     """
 
-    def __init__(self, render=True):
+    def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
         """
         self.render = render   # flag to set rendering (make this false to disable the new window)
+        self.stat_obs_flag = stat_obs_flag
+        self.dyn_obs_flag = dyn_obs_flag
 
         # creating a list of robots (only 1 is needed for now)
         self.robots = [Robot()]
@@ -67,14 +69,13 @@ class ParkingLotEnv:
             self.rob_spawn_pos = np.append(
                 self.rob_spawn_pos, self.robots[i].spawn_pos)
 
-        # TODO: @Akansha: add obstacles here
-        self.obstacles = []  # obstacle list
-        self.obs_spawn_pos = np.zeros(3)
 
-        self.static_obstacles = static_obstacles
-        self.dynamic_obstacles = dynamic_obstacles
-        self.wall_obstacles = wall_obstacles
-        # YOUR CODE HERE
+        # assigning obstacles to class members
+        if self.stat_obs_flag:
+            self.static_obstacles = static_obstacles
+            self.wall_obstacles = wall_obstacles
+        if self.dyn_obs_flag:
+            self.dynamic_obstacles = dynamic_obstacles
 
         self.n_robots = len(self.robots)
 
@@ -90,14 +91,14 @@ class ParkingLotEnv:
         )
 
         # add obstacles
-        for obs in self.static_obstacles:
-            self.env.add_obstacle(obs)
-
-        for obs in self.dynamic_obstacles:
-            self.env.add_obstacle(obs)
-
-        for obs in self.wall_obstacles:
-            self.env.add_obstacle(obs)
+        if self.stat_obs_flag:
+            for obs in self.static_obstacles:
+                self.env.add_obstacle(obs)
+            for obs in self.wall_obstacles:
+                self.env.add_obstacle(obs)
+        if self.dyn_obs_flag:
+            for obs in self.dynamic_obstacles:
+                self.env.add_obstacle(obs)
 
 
         # the size of "action" is the size of the command that a robot takes (if there is one robot)

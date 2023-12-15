@@ -9,6 +9,9 @@ class LocalPlanner:
         #! HARDCODED
         self.look_ahead_time = 5.0
         self.speed_factor =  0.05
+        self.look_ahead_thresh = 0.1
+        self.stop_thresh = 0.1
+        self.Kp = 1
 
     
     def plan(self, state):
@@ -42,6 +45,7 @@ class LocalPlanner:
             tx = self.trajectory.cx[-1]
             ty = self.trajectory.cy[-1]
             ind = len(self.trajectory.cx) - 1
+        print(tx, ty)
         
         # Calculate the slope of look ahead distance line which would be alpha.
         # If the car was heading along the velocity vector then that would be it but the 
@@ -49,13 +53,29 @@ class LocalPlanner:
         # from slope to get actual alpha
         alpha = np.arctan2(ty - rear_y, tx - rear_x) - yaw
 
-        # steering angle = invtan(2Lsin(alpha)/Ld)
-        # as established steering control law for pure pursuit controller
-        delta = np.arctan2(2.0 * state.L * np.sin(alpha) / look_ahead_dist, 1.0)
-        cmd_omega = 2 * np.sin(alpha)/self.look_ahead_time
-        cmd_vel = self.speed_factor * self.max_vel
-        self.trajectory.cx = self.trajectory.cx[closest_index:]
-        self.trajectory.cy = self.trajectory.cy[closest_index:]
+        # checking whether lookahead distance is large enough
+        if look_ahead_dist > self.look_ahead_thresh:
+            # steering angle = invtan(2Lsin(alpha)/Ld)
+            # as established steering control law for pure pursuit controller
+            delta = np.arctan2(2.0 * state.L * np.sin(alpha) / look_ahead_dist, 1.0)
+        else:
+            print("warning: small lookahead distance!")
+            delta = state.steering  # basically no steering input needed
+    
+        cmd_omega =  self.Kp * (delta - state.steering)
+        # cmd_omega = 2 * np.sin(alpha)/self.look_ahead_time
+        goal_dist = state.get_distance(self.trajectory.cx[-1], self.trajectory.cy[-1])
         
-        return np.array([cmd_vel, cmd_omega])
+        # print(goal_dist)
+        print(state.position)
+        if goal_dist > self.stop_thresh:
+            cmd_vel = self.speed_factor * self.max_vel
+            self.trajectory.cx = self.trajectory.cx[closest_index:]
+            self.trajectory.cy = self.trajectory.cy[closest_index:]
+        else:
+            cmd_vel = 0
+            cmd_omega = 0
+
+        cmd = np.array([cmd_vel, cmd_omega])
+        return cmd
         # return np.array([cmd_vel, 0.1])
