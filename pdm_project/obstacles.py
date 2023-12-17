@@ -99,7 +99,7 @@ static_obstacle_dicts = [
     {
         'type': 'box',
         'geometry': {
-            'position' : [5.0, 0.0, 0.2],
+            'position' : [4.0, -3.0 , 0.2],
             'width': 0.4,
             'height': 0.4,
             'length': 0.4,
@@ -117,12 +117,33 @@ static_obstacle_dicts = [
             'height': 0.4,
             'length': 0.4,
         }
+    },
+
+    {
+        'type': 'box',
+        'geometry': {
+            'position' : [6.0, 0.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
+        },
+        'movable': False,
+        'high': {
+            'position' : [5.0, 5.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
+        },
+        'low': {
+            'position' : [0.0, 0.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
+        }
     }
 ]
 
 static_obstacles = [BoxObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
-
-
 
 
 # walls

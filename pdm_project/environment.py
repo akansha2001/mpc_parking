@@ -66,7 +66,8 @@ class ParkingLotEnv:
         # assigning obstacles to class members
         if self.stat_obs_flag:
             self.static_obstacles = static_obstacles
-            self.wall_obstacles = wall_obstacles
+            self.wall_obstacles=[]
+            #self.wall_obstacles = wall_obstacles
             #self.obstacles = static_obstacles + wall_obstacles
         if self.dyn_obs_flag:
             self.dynamic_obstacles = dynamic_obstacles

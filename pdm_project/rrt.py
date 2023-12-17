@@ -12,6 +12,7 @@ except ImportError:
 import numpy as np
 from functools import partial
 from math import sin, cos
+from obstacles import static_obstacles
 class RRT():
 
     def __init__(self,obstacles=None):
@@ -20,8 +21,8 @@ class RRT():
         self.space = ob.SE2StateSpace()
         # set the bounds for the R^2 part of SE(2)
         bounds = ob.RealVectorBounds(2)
-        bounds.setLow(-1)
-        bounds.setHigh(1)
+        bounds.setLow(-10)
+        bounds.setHigh(10)
         self.space.setBounds(bounds)
 
         
@@ -44,7 +45,7 @@ class RRT():
         self.ss.setStateValidityChecker(isValidFn)
         self.ss.setStatePropagator(oc.StatePropagatorFn(self.propagate))
         self.si = self.ss.getSpaceInformation()
-        self.si.setPropagationStepSize(.1)
+        self.si.setPropagationStepSize(.6)
         self.planner=oc.RRT(self.si)
 
     def plan(self, start, goal):
@@ -63,14 +64,17 @@ class RRT():
         end().setYaw(yaw_goal)
         self.ss.setStartAndGoalStates(start,end, 0.05)
         self.ss.setPlanner(self.planner)
-        self.solved = self.ss.solve(20.0)
+        self.solved = self.ss.solve(10.0)
         if self.solved: 
-            self.path = self.ss.getSolutionPath()
-            #print(self.ss.getProblemDefinition().getSolutionCount())
-            self.ss.getPathSimplifier.simplifyMax(self.path)
-            self.ss.getPathSimplifier.smoothBSpline(self.path)
-            print(self.path.printAsMatrix())
-            #self.points=self.convert_path_to_points(self.path)
+            self.path=self.ss.getSolutionPath().printAsMatrix()
+            self.path = np.fromstring(self.path.strip(), sep=' ')  #The output of printAsMatrix() is a string
+            num_columns = 6  # 6 columns in the data
+            self.data_array = self.path.reshape(-1, num_columns)
+            self.states_final=self.data_array[:,0:3]
+            self.controls=self.data_array[:,3:5]
+            print(self.states_final)
+            #print(self.controls)
+            return self.states_final
         else:
             print("No solution found")
 
@@ -79,36 +83,20 @@ class RRT():
         # perform collision checking or check if other constraints are
         # satisfied
             robot_position = np.array([state.getX(), state.getY()])
-            for x in self.obstacles:
-                obstacle_position = np.array([x['position'][0], x['position'][1]])
-                obstacle_size = np.array([x['width'], x['height']])
-                radius = 1.5*np.max(obstacle_size) #should add a factor of safety
-                d = np.linalg.norm(robot_position - obstacle_position) #euclidean distance between obstacle and state
-                if d < radius: #collision 
-                    return False
+            if self.obstacles is not None:
+                for x in self.obstacles:
+                    obstacle_position = np.array([x['position'][0], x['position'][1]])
+                    obstacle_size = np.array([x['width'], x['height']])
+                    radius = 1.5*np.max(obstacle_size) #should add a factor of safety
+                    d = np.linalg.norm(robot_position - obstacle_position) #euclidean distance between obstacle and state
+                    if d < radius: #collision 
+                        print("Avoided collision with obstacles")
+                        return False
+                    
                 
             return spaceInformation.satisfiesBounds(state)
         return isStateValid
     
-    def convert_path_to_points(self,path_pointer):
-    # checking if the input has data
-        if path_pointer is None:
-            raise ValueError("Invalid path pointer")
-        # getting space info
-        # space_info = path_pointer.getSpaceInformation()
-        
-        # extracting states from the path
-        path_states = path_pointer.getStates()
-        points = []
-        for state in path_states:
-            x = state.getX()
-            y = state.getY()
-            yaw = state.getYaw()
-            # appending the point (x, y, yaw) to the list
-            points.append([x, y, yaw])
-
-        return points
-
     def propagate(self,start, control, duration, state):
      state.setX(start.getX() + control[0] * duration * cos(start.getYaw()))
      state.setY(start.getY() + control[0] * duration * sin(start.getYaw()))
