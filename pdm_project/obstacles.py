@@ -148,7 +148,7 @@ static_obstacle_dicts = [
             'position' : [5.0, 5.0, 0.1],
             'width': 2.0,
             'height': 4.0,
-            'length': 4.0,
+            'length': 5.0,
         },
         'movable': False,
         'high': {

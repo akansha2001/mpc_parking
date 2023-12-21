@@ -15,6 +15,7 @@ from math import sin, cos
 from obstacles import static_obstacles
 from mpscenes.obstacles.box_obstacle import BoxObstacle
 from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
+from shapely import Polygon
 class RRT():
 
     def __init__(self,obstacles=None):
@@ -82,26 +83,39 @@ class RRT():
         else:
             print("No solution found")
 
+    def carPolygon_(self, x, y, yaw): #returns a polygon for the car given a position and heading
+        #geometry of the car
+        carLength = 4.599
+        carWidth = 1.782
+        carHeight = 1.430   
+        return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
+                            (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
+                            (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),
+                            (x + carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw))))
+
+        return None
+
+    def obstaclePolygon(self, obstacle):
+        position = np.array([obstacle.position()[0], obstacle.position()[1]])
+        width = obstacle.width()
+        length = obstacle.length()
+        return Polygon(shell=((position[0]+width/2, position[1]+length/2),
+                                        (position[0]+width/2, position[1]-length/2),
+                                        (position[0]-width/2, position[1]-length/2),
+                                        (position[0]-width/2, position[1]+length/2)))
+
     def collision_checker(self, state):
         return self.clearance(self.si, state)
 
     def clearance(self, spaceInformation, state):
-        robot_position = np.array([state.getX(), state.getY()])
+        car_x = state.getX()
+        car_y = state.getY()
+        car_yaw = state.getYaw()
+        polygonCar = self.carPolygon_(car_x, car_y, car_yaw)
         if self.obstacles is not None:
             for obstacle in self.obstacles:
-                if isinstance(obstacle, DynamicSphereObstacle):
-                    obstacle_position = np.array([obstacle.geometry['trajectory']['controlPoints'][0][0],
-                                                obstacle.geometry['trajectory']['controlPoints'][0][1]])
-                elif isinstance(obstacle, BoxObstacle):
-                    obstacle_position = np.array([obstacle.position()[0], obstacle.position()[1]])
-                else:
-                    continue  # Skip obstacles of unknown type
-
-                obstacle_size = np.array([obstacle.width(), obstacle.height()])
-                radius = 1.5 * np.max(obstacle_size)  # should add a factor of safety
-                d = np.linalg.norm(robot_position - obstacle_position)  # euclidean distance between obstacle and state
-                if d < (radius+2):  # collision
-                    print("Avoided collision with obstacles")
+                polygonObstacles = self.obstaclePolygon(obstacle)
+                if polygonCar.intersects(polygonObstacles):
                     return False
         return spaceInformation.satisfiesBounds(state)
     
