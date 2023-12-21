@@ -13,6 +13,8 @@ import numpy as np
 from functools import partial
 from math import sin, cos
 from obstacles import static_obstacles
+from mpscenes.obstacles.box_obstacle import BoxObstacle
+from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
 class RRT():
 
     def __init__(self,obstacles=None):
@@ -27,9 +29,6 @@ class RRT():
 
         
         self.obstacles=obstacles
-        
-        
-        
         # create a control space
         self.cspace = oc.RealVectorControlSpace(self.space, 2)
     
@@ -41,14 +40,14 @@ class RRT():
 
         # define a simple setup class
         self.ss = oc.SimpleSetup(self.cspace)
-        isValidFn = ob.StateValidityCheckerFn(partial(self.collision_checker(), self.ss.getSpaceInformation()))
+        isValidFn = ob.StateValidityCheckerFn(self.collision_checker)
         self.ss.setStateValidityChecker(isValidFn)
         self.ss.setStatePropagator(oc.StatePropagatorFn(self.propagate))
         self.si = self.ss.getSpaceInformation()
         self.si.setPropagationStepSize(.6)
         self.planner=oc.RRT(self.si)
 
-    def plan(self, start, goal):
+    def plan(self, start, goal, output_file="path_output.txt"):
         x_start ,y_start ,yaw_start = start[0], start[1], start[2]
         x_goal = goal[0]
         y_goal = goal[1]
@@ -74,28 +73,37 @@ class RRT():
             self.controls=self.data_array[:,3:5]
             print(self.states_final)
             #print(self.controls)
+            with open(output_file, 'w') as file:
+                np.savetxt(file, self.states_final, fmt='%.6f', delimiter=', ')
+            print(f"Path saved to {output_file}")
+            
+            return self.states_final
             return self.states_final
         else:
             print("No solution found")
 
-    def collision_checker(self):
-        def isStateValid(spaceInformation, state):
-        # perform collision checking or check if other constraints are
-        # satisfied
-            robot_position = np.array([state.getX(), state.getY()])
-            if self.obstacles is not None:
-                for x in self.obstacles:
-                    obstacle_position = np.array([x['position'][0], x['position'][1]])
-                    obstacle_size = np.array([x['width'], x['height']])
-                    radius = 1.5*np.max(obstacle_size) #should add a factor of safety
-                    d = np.linalg.norm(robot_position - obstacle_position) #euclidean distance between obstacle and state
-                    if d < radius: #collision 
-                        print("Avoided collision with obstacles")
-                        return False
-                    
-                
-            return spaceInformation.satisfiesBounds(state)
-        return isStateValid
+    def collision_checker(self, state):
+        return self.clearance(self.si, state)
+
+    def clearance(self, spaceInformation, state):
+        robot_position = np.array([state.getX(), state.getY()])
+        if self.obstacles is not None:
+            for obstacle in self.obstacles:
+                if isinstance(obstacle, DynamicSphereObstacle):
+                    obstacle_position = np.array([obstacle.geometry['trajectory']['controlPoints'][0][0],
+                                                obstacle.geometry['trajectory']['controlPoints'][0][1]])
+                elif isinstance(obstacle, BoxObstacle):
+                    obstacle_position = np.array([obstacle.position()[0], obstacle.position()[1]])
+                else:
+                    continue  # Skip obstacles of unknown type
+
+                obstacle_size = np.array([obstacle.width(), obstacle.height()])
+                radius = 1.5 * np.max(obstacle_size)  # should add a factor of safety
+                d = np.linalg.norm(robot_position - obstacle_position)  # euclidean distance between obstacle and state
+                if d < (radius+2):  # collision
+                    print("Avoided collision with obstacles")
+                    return False
+        return spaceInformation.satisfiesBounds(state)
     
     def propagate(self,start, control, duration, state):
      state.setX(start.getX() + control[0] * duration * cos(start.getYaw()))

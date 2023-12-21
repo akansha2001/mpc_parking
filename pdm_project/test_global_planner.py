@@ -6,7 +6,6 @@ from obstacles import static_obstacles
 class GlobalPlanner:
     def __init__(self, planner_type="dummy",obstacles=None):
         # initializing the planner based on type
-        #self.obstacles=obstacles
         self.obstacles=static_obstacles
         self.planner = self._initialize_planner(planner_type,obstacles=self.obstacles)
     def _initialize_planner(self, planner_type,obstacles=None):
@@ -35,6 +34,6 @@ class GlobalPlanner:
 
 if __name__ == "__main__":
     global_obj=GlobalPlanner(planner_type="rrt")
-    start_goal=np.array([0.0,0.0,0.0])
+    start_goal=np.array([-2.0,0.0,0.0])
     dummy_goal=np.array([10.0,0.0,0.0])
     global_obj.plan_global_path(start_goal, dummy_goal)    

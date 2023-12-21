@@ -140,11 +140,57 @@ static_obstacle_dicts = [
             'height': 0.2,
             'length': 0.2,
         }
+    },
+    
+    {
+        'type': 'box',
+        'geometry': {
+            'position' : [5.0, 5.0, 0.1],
+            'width': 2.0,
+            'height': 4.0,
+            'length': 4.0,
+        },
+        'movable': False,
+        'high': {
+            'position' : [5.0, 5.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
+        },
+        'low': {
+            'position' : [0.0, 0.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
+        }
+    },
+    
+    {
+        'type': 'box',
+        'geometry': {
+            'position' : [0.0, -5.0, 0.1],
+            'width': 2.0,
+            'height': 3.0,
+            'length': 3.0,
+        },
+        'movable': False,
+        'high': {
+            'position' : [5.0, 5.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
+        },
+        'low': {
+            'position' : [0.0, 0.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
+        }
     }
 ]
 
 static_obstacles = [BoxObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
-
+print(len(static_obstacles))
 
 # walls
 
@@ -228,4 +274,3 @@ wall_obstacles_dicts = [
 ]
 
 wall_obstacles = [BoxObstacle(name=f"wall_{i}", content_dict=obst_dict) for i, obst_dict in enumerate(wall_obstacles_dicts)]
-
