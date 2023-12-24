@@ -145,7 +145,7 @@ static_obstacle_dicts = [
     {
         'type': 'box',
         'geometry': {
-            'position' : [5.0, 5.0, 0.1],
+            'position' : [5.0, 0.0, 0.1],
             'width': 2.0,
             'height': 4.0,
             'length': 5.0,
@@ -168,7 +168,7 @@ static_obstacle_dicts = [
     {
         'type': 'box',
         'geometry': {
-            'position' : [0.0, -5.0, 0.1],
+            'position' : [0.0, 5, 0.1],
             'width': 2.0,
             'height': 3.0,
             'length': 3.0,
@@ -190,11 +190,11 @@ static_obstacle_dicts = [
 ]
 
 static_obstacles = [BoxObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
-print(len(static_obstacles))
+#print(len(static_obstacles))
 
 # walls
 
-wall_length = 10
+wall_length = 20
 wall_obstacles_dicts = [
 
     

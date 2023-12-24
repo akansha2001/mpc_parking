@@ -18,7 +18,7 @@ from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
 from shapely import Polygon
 class RRT():
 
-    def __init__(self,obstacles=None):
+    def __init__(self,staticObstacles=None, wallObstacles=None):
         
         # Public attributes
         self.space = ob.SE2StateSpace()
@@ -29,7 +29,8 @@ class RRT():
         self.space.setBounds(bounds)
 
         
-        self.obstacles=obstacles
+        self.static_obstacles=staticObstacles
+        self.wall_obstacles=wallObstacles
         # create a control space
         self.cspace = oc.RealVectorControlSpace(self.space, 2)
     
@@ -83,7 +84,7 @@ class RRT():
         else:
             print("No solution found")
 
-    def carPolygon_(self, x, y, yaw): #returns a polygon for the car given a position and heading
+    def carPolygon(self, x, y, yaw): #returns a polygon for the car given a position and heading
         #geometry of the car
         carLength = 4.599
         carWidth = 1.782
@@ -103,17 +104,49 @@ class RRT():
                                         (position[0]+width/2, position[1]-length/2),
                                         (position[0]-width/2, position[1]-length/2),
                                         (position[0]-width/2, position[1]+length/2)))
+    
+    def wallPolygon(self,obstacle):
+        position = np.array([obstacle.position()[1], obstacle.position()[0]])
+        width = obstacle.width()
+        length = obstacle.length()
+        return Polygon(shell=((position[0]+width/2, position[1]+length/2),
+                                        (position[0]+width/2, position[1]-length/2),
+                                        (position[0]-width/2, position[1]-length/2),
+                                        (position[0]-width/2, position[1]+length/2)))
 
     def collision_checker(self, state):
         return self.clearance(self.si, state)
+
+    # def clearance(self, spaceInformation, state):
+    #     car_x = state.getX()
+    #     car_y = state.getY()
+    #     car_yaw = state.getYaw()
+    #     polygonCar = self.carPolygon_(car_x, car_y, car_yaw)
+    #     validFlagStatic = True
+    #     validFlagWall = True
+    #     if self.static_obstacles is not None:
+    #         for obstacle in self.static_obstacles:
+    #             polygonObstacles_static = self.obstaclePolygon(obstacle)
+    #             if polygonCar.intersects(polygonObstacles_static):
+    #                 validFlagStatic = False
+    #     if self.wall_obstacles is not None:
+    #         for obstacle in self.wall_obstacles:
+    #             polygonObstacles_wall = self.wallPolygon(obstacle)
+    #             if polygonCar.intersects(polygonObstacles_wall):
+    #                 validFlagWall = False
+    # # Check if there is clearance from both types of obstacles
+    #     if not validFlagStatic or not validFlagWall:
+    #         return False
+    #     else:
+    #         return spaceInformation.satisfiesBounds(state)
 
     def clearance(self, spaceInformation, state):
         car_x = state.getX()
         car_y = state.getY()
         car_yaw = state.getYaw()
-        polygonCar = self.carPolygon_(car_x, car_y, car_yaw)
-        if self.obstacles is not None:
-            for obstacle in self.obstacles:
+        polygonCar = self.carPolygon(car_x, car_y, car_yaw)
+        if self.static_obstacles is not None:
+            for obstacle in self.static_obstacles:
                 polygonObstacles = self.obstaclePolygon(obstacle)
                 if polygonCar.intersects(polygonObstacles):
                     return False
