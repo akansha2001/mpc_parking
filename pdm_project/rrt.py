@@ -27,10 +27,10 @@ class RRT():
         bounds.setLow(-10)
         bounds.setHigh(10)
         self.space.setBounds(bounds)
-
-        
         self.static_obstacles=staticObstacles
         self.wall_obstacles=wallObstacles
+        self.output_file= "data/path_output.txt"
+        
         # create a control space
         #self.cspace = oc.RealVectorControlSpace(self.space, 2)
     
@@ -51,7 +51,7 @@ class RRT():
         self.planner.setRange(0.2)
         self.planner.setGoalBias(0.1)
 
-    def plan(self, start, goal, output_file="path_output.txt"):
+    def plan(self, start, goal):
         x_start ,y_start ,yaw_start = start[0], start[1], start[2]
         x_goal = goal[0]
         y_goal = goal[1]
@@ -77,9 +77,9 @@ class RRT():
             #self.controls=self.data_array[:,3:5]
             #print(self.controls)
             
-            with open(output_file, 'w') as file:
+            with open(self.output_file, 'w') as file:
                 np.savetxt(file, self.states_final, fmt='%.6f', delimiter=', ')
-            print(f"Path saved to {output_file}")
+            print(f"Path saved to {self.output_file}")
             return self.states_final
         else:
             print("No solution found")

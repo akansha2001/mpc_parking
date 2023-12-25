@@ -30,18 +30,17 @@ class Robot:
         self.spawn_pos = spawn_pos
         self.state.position = spawn_pos
 
-        #setting obstacles to given obstacles or defaulting to an empty list
-        self.obstacles = obstacles or []
-
+        self.init_planner = False   # flag for initializing the planner
         # initializing a global planner of a certain 'type'
-        self.global_planner = GlobalPlanner(planner_type="rrt",obstacles=self.obstacles)
-        # TODO: remove the use of dummy goal
-        dummy_goal = self.state.position + np.array([10.0, 0.0, 0.0])
-        self.global_plan = self.global_planner.plan_global_path(self.state.position, dummy_goal)
-        self.local_planner = LocalPlanner(Trajectory(self.global_plan))  # creating a LocalPlanner instance
 
+    def set_plan(self, global_plan):
+        # TODO: move local planner to the parking lot env
+        self.local_planner = LocalPlanner(Trajectory(global_plan))  # creating a LocalPlanner instance
+        self.init_planner = False
 
     def get_target(self):
+        if not self.init_planner:
+            raise Exception("robot plan not set!")
         # currently getting the target from the local planner based on the current position
         return self.local_planner.plan(self.state)
 
@@ -50,7 +49,7 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-
+    GOAL = np.array([10, 0, 0])
     def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
@@ -66,7 +65,6 @@ class ParkingLotEnv:
         self.robots = [Robot()]
         self.robot_models = []
         self.rob_spawn_pos = np.array([])
-
         # assigning obstacles to class members
         if self.stat_obs_flag:
             self.static_obstacles = static_obstacles
@@ -76,7 +74,7 @@ class ParkingLotEnv:
         if self.dyn_obs_flag:
             self.dynamic_obstacles = dynamic_obstacles
 
-        # iterating over all robotsF
+        # iterating over all robots
         for i in range(len(self.robots)):
             # appending the index to match the naming convention as defined in the obs object
             self.robots[i].name += str(i)
@@ -85,9 +83,12 @@ class ParkingLotEnv:
             # spawn positions extracted, again used while creating the env
             self.rob_spawn_pos = np.append(
                 self.rob_spawn_pos, self.robots[i].spawn_pos)
+            
+            # setting a global plan for each robot
+            planner = GlobalPlanner(planner_type="rrt", obstacles=self.static_obstacles)
+            global_plan = planner.plan(self.state.position, ParkingLotEnv.GOAL)
+            self.robot[i].set_plan(global_plan)
 
-            self.robots[i].obstacles=self.static_obstacles
-        
         self.n_robots = len(self.robots)
 
     def setup_env(self):
@@ -120,10 +121,8 @@ class ParkingLotEnv:
 
         # the size of the state variable (3 => x, y, theta(orientation)])
         self.ns_per_robot = self.env.ns_per_robot()
-        print("ns_per_robot:", self.ns_per_robot)
         # the size of the action variable (2 => forward_vel, yaw_rate)
         self.n_per_robot = self.env.n_per_robot()
-        print("n_per_robot:", self.n_per_robot)
 
         # resetting the environment with the specified initial positions
         print(self.rob_spawn_pos)

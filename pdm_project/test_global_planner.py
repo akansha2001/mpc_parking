@@ -20,7 +20,7 @@ class GlobalPlanner:
         else:
             raise ValueError(f"Invalid planner type: {planner_type}")
 
-    def plan_global_path(self, start, goal):
+    def plan(self, start, goal):
         """
         Plan a global path from the given start to the goal.
 
@@ -37,4 +37,4 @@ if __name__ == "__main__":
     global_obj=GlobalPlanner(planner_type="rrt")
     start_goal=np.array([-6.0,0.0,0.0])
     dummy_goal=np.array([6.0,8,0.0])
-    global_obj.plan_global_path(start_goal, dummy_goal)    
+    global_obj.plan(start_goal, dummy_goal)    

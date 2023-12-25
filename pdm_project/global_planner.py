@@ -18,7 +18,7 @@ class GlobalPlanner:
         else:
             raise ValueError(f"Invalid planner type: {planner_type}")
 
-    def plan_global_path(self, start, goal):
+    def plan(self, start, goal):
         """
         Plan a global path from the given start to the goal.
 
