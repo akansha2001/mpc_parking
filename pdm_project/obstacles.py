@@ -145,10 +145,10 @@ static_obstacle_dicts = [
     {
         'type': 'box',
         'geometry': {
-            'position' : [5.0, 0.0, 0.1],
-            'width': 2.0,
-            'height': 4.0,
-            'length': 5.0,
+            'position' : [8.6, -0.5, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
         },
         'movable': False,
         'high': {
@@ -164,14 +164,13 @@ static_obstacle_dicts = [
             'length': 0.2,
         }
     },
-    
     {
         'type': 'box',
         'geometry': {
-            'position' : [0.0, 5, 0.1],
-            'width': 2.0,
-            'height': 3.0,
-            'length': 3.0,
+            'position' : [4.0, 4.0, 0.1],
+            'width': 0.2,
+            'height': 0.2,
+            'length': 0.2,
         },
         'movable': False,
         'high': {

@@ -8,6 +8,7 @@ from trajectory import State
 from trajectory import Trajectory
 import time
 from obstacles import static_obstacles, dynamic_obstacles, wall_obstacles
+from helper import FileOp
 '''
 The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
 '''
@@ -57,6 +58,9 @@ class ParkingLotEnv:
         self.render = render   # flag to set rendering (make this false to disable the new window)
         self.stat_obs_flag = stat_obs_flag
         self.dyn_obs_flag = dyn_obs_flag
+
+        #Creating an object of file op to store the robot positions
+        self.file=FileOp("robot_pos.csv")
 
         # creating a list of robots (only 1 is needed for now)
         self.robots = [Robot()]
@@ -137,11 +141,12 @@ class ParkingLotEnv:
             if robot.name in self.ob:
                 robot_data = self.ob[robot.name]
                 joint_state_data = robot_data.get('joint_state', {})
-
                 # dynamically updating robot attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
             # print(robot.state.forward_velocity)
+                self.file.write(robot.state.position)
+        
 
     def get_action(self):
         """
@@ -175,7 +180,8 @@ class ParkingLotEnv:
                 action = self.get_action()
                 self.ob, *_ = self.env.step(action)
                 # * uncomment the line below to store observations in a list
-                # history.append(ob)
+                #history.append(action)
+
         except KeyboardInterrupt:
             pass  # this block will be executed on a keyboard interrupt
         print("\n\nEnding Simulation")

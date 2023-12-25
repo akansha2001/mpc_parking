@@ -1,6 +1,6 @@
 try:
      from ompl import base as ob
-     from ompl import control as oc
+     from ompl import geometric as og
 except ImportError:
     #if the ompl module is not in the PYTHONPATH assume it is installed in a
     #subdirectory of the parent directory called "py-bindings."
@@ -8,7 +8,7 @@ except ImportError:
     import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
     from ompl import base as ob
-    from ompl import control as oc
+    from ompl import geometric as og
 import numpy as np
 from functools import partial
 from math import sin, cos
@@ -21,7 +21,7 @@ class RRT():
     def __init__(self,staticObstacles=None, wallObstacles=None):
         
         # Public attributes
-        self.space = ob.SE2StateSpace()
+        self.space = ob.DubinsStateSpace()
         # set the bounds for the R^2 part of SE(2)
         bounds = ob.RealVectorBounds(2)
         bounds.setLow(-10)
@@ -32,22 +32,24 @@ class RRT():
         self.static_obstacles=staticObstacles
         self.wall_obstacles=wallObstacles
         # create a control space
-        self.cspace = oc.RealVectorControlSpace(self.space, 2)
+        #self.cspace = oc.RealVectorControlSpace(self.space, 2)
     
         # set the bounds for the control space
-        cbounds = ob.RealVectorBounds(2)
-        cbounds.setLow(-.3)
-        cbounds.setHigh(.3)
-        self.cspace.setBounds(cbounds)
+        # cbounds = ob.RealVectorBounds(2)
+        # cbounds.setLow(-.3)
+        # cbounds.setHigh(.3)
+        # self.cspace.setBounds(cbounds)
 
         # define a simple setup class
-        self.ss = oc.SimpleSetup(self.cspace)
+        self.ss = og.SimpleSetup(self.space)
+        self.si = self.ss.getSpaceInformation()
         isValidFn = ob.StateValidityCheckerFn(self.collision_checker)
         self.ss.setStateValidityChecker(isValidFn)
-        self.ss.setStatePropagator(oc.StatePropagatorFn(self.propagate))
-        self.si = self.ss.getSpaceInformation()
-        self.si.setPropagationStepSize(.6)
-        self.planner=oc.RRT(self.si)
+        #self.ss.setStatePropagator(oc.StatePropagatorFn(self.propagate))
+        #self.si.setPropagationStepSize(.6)
+        self.planner=og.RRT(self.si)
+        self.planner.setRange(0.2)
+        self.planner.setGoalBias(0.1)
 
     def plan(self, start, goal, output_file="path_output.txt"):
         x_start ,y_start ,yaw_start = start[0], start[1], start[2]
@@ -69,32 +71,28 @@ class RRT():
         if self.solved: 
             self.path=self.ss.getSolutionPath().printAsMatrix()
             self.path = np.fromstring(self.path.strip(), sep=' ')  #The output of printAsMatrix() is a string
-            num_columns = 6  # 6 columns in the data
+            num_columns = 3  # 6 columns in the data
             self.data_array = self.path.reshape(-1, num_columns)
             self.states_final=self.data_array[:,0:3]
-            self.controls=self.data_array[:,3:5]
-            print(self.states_final)
+            #self.controls=self.data_array[:,3:5]
             #print(self.controls)
+            
             with open(output_file, 'w') as file:
                 np.savetxt(file, self.states_final, fmt='%.6f', delimiter=', ')
             print(f"Path saved to {output_file}")
-            
-            return self.states_final
             return self.states_final
         else:
             print("No solution found")
 
     def carPolygon(self, x, y, yaw): #returns a polygon for the car given a position and heading
         #geometry of the car
-        carLength = 4.599
-        carWidth = 1.782
-        carHeight = 1.430   
+        carLength = 4.599 * 0.3
+        carWidth = 1.782 * 0.3
         return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),
                             (x + carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw))))
 
-        return None
 
     def obstaclePolygon(self, obstacle):
         position = np.array([obstacle.position()[0], obstacle.position()[1]])
@@ -151,8 +149,3 @@ class RRT():
                 if polygonCar.intersects(polygonObstacles):
                     return False
         return spaceInformation.satisfiesBounds(state)
-    
-    def propagate(self,start, control, duration, state):
-     state.setX(start.getX() + control[0] * duration * cos(start.getYaw()))
-     state.setY(start.getY() + control[0] * duration * sin(start.getYaw()))
-     state.setYaw(start.getYaw() + control[1] * duration)
