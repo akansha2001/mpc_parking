@@ -15,17 +15,9 @@ from matplotlib.patches import Rectangle
 from matplotlib.animation import FuncAnimation
 from IPython.display import HTML, display
 
-def plot_polygon(ax, poly, **kwargs):
-    path = Path.make_compound_path(
-        Path(np.asarray(poly.exterior.coords)[:, :2]),
-        *[Path(np.asarray(ring.coords)[:, :2]) for ring in poly.interiors])
+#Polygon functions
+from helper import *
 
-    patch = PathPatch(path, **kwargs)
-    collection = PatchCollection([patch], **kwargs)
-    
-    ax.add_collection(collection, autolim=True)
-    ax.autoscale_view()
-    return collection
 
 # Load the path data from the generated text file
 path_data = np.genfromtxt('data/path_output.txt', delimiter=', ')
@@ -46,46 +38,20 @@ yaw_actual_path = actual_path_data[:,2]
 carLength = 4.599 * 0.3
 carWidth = 1.782 * 0.3
 
-def carPolygon(x,y,yaw): #returns a polygon for the car given a position and heading
-    return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
-                     (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
-                     (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),
-                     (x + carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw))))
+# list_intersection = []
+# list_cross = []
 
-def obstaclePolygon(obstacle):
-    position = np.array([obstacle.position()[0], obstacle.position()[1]])
-    width = obstacle.width()
-    length = obstacle.length()
-    return Polygon(shell=((position[0]+width/2, position[1]+length/2),
-                                    (position[0]+width/2, position[1]-length/2),
-                                    (position[0]-width/2, position[1]-length/2),
-                                    (position[0]-width/2, position[1]+length/2)))
-
-def wallPolygon(obstacle):
-    position = np.array([obstacle.position()[1], obstacle.position()[0]])
-    width = obstacle.width()
-    length = obstacle.length()
-    return Polygon(shell=((position[0]+width/2, position[1]+length/2),
-                                    (position[0]+width/2, position[1]-length/2),
-                                    (position[0]-width/2, position[1]-length/2),
-                                    (position[0]-width/2, position[1]+length/2)))
-
-list_intersection = []
-list_cross = []
-
-for i in range(len(x_path)):
-    car_polygon = carPolygon(x_path[i], y_path[i], yaw_path[i])
-    for obstacles in static_obstacles:
-        obstacle_polygon = obstaclePolygon(obstacles)
-        intersection = obstacle_polygon.intersects(car_polygon)
-        #cross = car_polygon.crosses(obstacle_polygon)
-        list_intersection.append(intersection)
-        #list_cross.append(cross)
+# for i in range(len(x_path)):
+#     car_polygon = carPolygon(x_path[i], y_path[i], yaw_path[i])
+#     for obstacles in static_obstacles:
+#         obstacle_polygon = obstaclePolygon(obstacles)
+#         intersection = obstacle_polygon.intersects(car_polygon)
+#         #cross = car_polygon.crosses(obstacle_polygon)
+#         list_intersection.append(intersection)
+#         #list_cross.append(cross)
     
 
-print(list_intersection)
-
-
+# print(list_intersection)
 
 # Initialize empty plot for the car
 #patch = patches.Polygon(v,closed=True, fc='r', ec='r')
@@ -131,26 +97,30 @@ plt.title('Path Planning with Obstacles')
 plt.legend()
 plt.minorticks_on()
 plt.grid(which='minor', linestyle=':', linewidth='0.5')
-
-def init():
-    ax.add_patch(patch)
-    return patch,
-
-def animate(i):
-    x1 = x_actual_path[i] - carLength/2*np.cos(yaw_actual_path[i]) + carWidth/2*np.sin(yaw_actual_path[i])
-    y1 = y_actual_path[i] - carLength/2*np.sin(yaw_actual_path[i]) - carWidth/2*np.cos(yaw_actual_path[i])
-    patch.set_width(carLength)
-    patch.set_height(carWidth)
-    patch.set_xy([x1 , y1])
-    patch.angle = (yaw_actual_path[i])*180/np.pi
-    return patch,
-
-# Create the animation
-anim = FuncAnimation(fig, animate,init_func=init,frames=len(x_actual_path),interval=100,blit=True)
-
-# Display the animation
-display(HTML(anim.to_jshtml()))
+plt.savefig('simulation/path_plot.png')
+plt.show()
 
 
+# def init():
+#     ax.add_patch(patch)
+#     return patch,
+
+# def animate(i):
+#     x1 = x_actual_path[i] - carLength/2*np.cos(yaw_actual_path[i]) + carWidth/2*np.sin(yaw_actual_path[i])
+#     y1 = y_actual_path[i] - carLength/2*np.sin(yaw_actual_path[i]) - carWidth/2*np.cos(yaw_actual_path[i])
+#     patch.set_width(carLength)
+#     patch.set_height(carWidth)
+#     patch.set_xy([x1 , y1])
+#     patch.angle = (yaw_actual_path[i])*180/np.pi
+#     return patch,
+
+# # Create the animation
+# anim = FuncAnimation(fig, animate,init_func=init,frames=len(x_actual_path),interval=100,blit=True)
+# anim.save('simulation/animation.html', writer='html')
+# # Display the animation
+# # display(HTML(anim.to_jshtml()))
+
+# import webbrowser
+# webbrowser.open('animation.html')
 
 

@@ -19,7 +19,6 @@ class GlobalPlanner:
             return DummyPlanner()
         else:
             raise ValueError(f"Invalid planner type: {planner_type}")
-
     def plan(self, start, goal):
         """
         Plan a global path from the given start to the goal.
