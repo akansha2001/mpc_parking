@@ -36,7 +36,7 @@ class Robot:
     def set_plan(self, global_plan):
         # TODO: move local planner to the parking lot env
         self.local_planner = LocalPlanner(Trajectory(global_plan))  # creating a LocalPlanner instance
-        self.init_planner = False
+        self.init_planner = True
 
     def get_target(self):
         if not self.init_planner:
@@ -49,7 +49,7 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-    GOAL = np.array([10, 0, 0])
+    GOAL = np.array([10., 0., 0.])
     def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
@@ -59,7 +59,7 @@ class ParkingLotEnv:
         self.dyn_obs_flag = dyn_obs_flag
 
         #Creating an object of file op to store the robot positions
-        self.file=FileOp("robot_pos.csv")
+        self.file=FileOp("data/robot_pos.csv")
 
         # creating a list of robots (only 1 is needed for now)
         self.robots = [Robot()]
@@ -81,16 +81,17 @@ class ParkingLotEnv:
             # appending the model list, which is later used to create the env
             self.robot_models.append(self.robots[i].model)
             # spawn positions extracted, again used while creating the env
-            self.rob_spawn_pos = np.append(
-                self.rob_spawn_pos, self.robots[i].spawn_pos)
-            
-            # setting a global plan for each robot
-            planner = GlobalPlanner(planner_type="rrt", obstacles=self.static_obstacles)
-            global_plan = planner.plan(self.state.position, ParkingLotEnv.GOAL)
-            self.robot[i].set_plan(global_plan)
+            self.rob_spawn_pos = np.append(self.rob_spawn_pos, self.robots[i].spawn_pos)
+            self.set_global_plan(i)
 
         self.n_robots = len(self.robots)
 
+    def set_global_plan(self, idx):
+        # setting a global plan for each robot
+            planner = GlobalPlanner(planner_type="rrt", obstacles=self.static_obstacles)
+            global_plan = planner.plan(self.robots[idx].state.position, ParkingLotEnv.GOAL)
+            self.robots[idx].set_plan(global_plan)
+    
     def setup_env(self):
         """
         - sets up the environment for simulation

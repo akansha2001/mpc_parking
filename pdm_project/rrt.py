@@ -48,7 +48,7 @@ class RRT():
         #self.ss.setStatePropagator(oc.StatePropagatorFn(self.propagate))
         #self.si.setPropagationStepSize(.6)
         self.planner=og.RRT(self.si)
-        self.planner.setRange(0.2)
+        self.planner.setRange(0.4)
         self.planner.setGoalBias(0.1)
 
     def plan(self, start, goal):
@@ -67,7 +67,7 @@ class RRT():
         end().setYaw(yaw_goal)
         self.ss.setStartAndGoalStates(start,end, 0.05)
         self.ss.setPlanner(self.planner)
-        self.solved = self.ss.solve(10.0)
+        self.solved = self.ss.solve(100.0)
         if self.solved: 
             self.path=self.ss.getSolutionPath().printAsMatrix()
             self.path = np.fromstring(self.path.strip(), sep=' ')  #The output of printAsMatrix() is a string
@@ -86,8 +86,8 @@ class RRT():
 
     def carPolygon(self, x, y, yaw): #returns a polygon for the car given a position and heading
         #geometry of the car
-        carLength = 4.599 * 0.3
-        carWidth = 1.782 * 0.3
+        carLength = 4.599 * 0.4
+        carWidth = 1.782 * 0.4
         return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),
