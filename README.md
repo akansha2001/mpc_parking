@@ -13,8 +13,23 @@ Planning and Decision Making Project Q2
         cd gym_envs_urdf
         pip3 install .
         ```
+        For this method, make sure to install the lib using `pip3 install .`!
+2. Install `do-mpc`
+    ```bash
+    pip install do_mpc[full]
+    ```
+    You can test the installation by:
+    ```bash
+    cd pdm_project/tests
+    python3 test_mpc.py
+    ```
 
-    Make sure to install the lib using `pip3 install .`!
+    If you encounter an error regarding the `OpenSSL` package, try this:
+    ```bash
+    pip install pip --upgrade
+    pip install pyopenssl --upgrade
+    ```
+    
 ## Documentation
 * Check out `docs/gymnasium.md` for the environment documentation
 * To understand the format of the data coming from the environment, through the variable `obs`, check `docs/obs_example.json`.

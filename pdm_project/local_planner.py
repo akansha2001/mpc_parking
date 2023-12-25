@@ -13,7 +13,6 @@ class LocalPlanner:
         self.stop_thresh = 0.1
         self.Kp = 1
 
-    
     def plan(self, state):
         # extracting necessary state variables
         u = state.get_forward_velocity()

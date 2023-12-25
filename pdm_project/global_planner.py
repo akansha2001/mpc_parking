@@ -1,7 +1,6 @@
-# from rrt import RRT
 import numpy as np
-from dummy_planner import DummyPlanner
 from rrt import RRT
+
 class GlobalPlanner:
     def __init__(self, planner_type="dummy",obstacles=None):
         # initializing the planner based on type
@@ -14,7 +13,8 @@ class GlobalPlanner:
         if planner_type == "rrt":
             return RRT(obstacles)  # replace with the actual RRT planner class
         elif planner_type == "dummy":
-            return DummyPlanner()
+            # return DummyPlanner()
+            raise ValueError(f"Deprecated planner: {planner_type}!")
         else:
             raise ValueError(f"Invalid planner type: {planner_type}")
 
