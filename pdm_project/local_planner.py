@@ -1,7 +1,7 @@
 import numpy as np
 from trajectory import Trajectory
 
-# TODO: chang local planner to pure pursuit using inheritance
+# TODO: change local planner to pure pursuit using inheritance
 class LocalPlanner:
     def __init__(self, trajectory: Trajectory, max_vel = 5):
         self.trajectory = trajectory 

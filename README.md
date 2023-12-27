@@ -16,7 +16,7 @@ Planning and Decision Making Project Q2
         For this method, make sure to install the lib using `pip3 install .`!
 2. Install `do-mpc`
     ```bash
-    pip install do_mpc[full]
+    
     ```
     You can test the installation by:
     ```bash

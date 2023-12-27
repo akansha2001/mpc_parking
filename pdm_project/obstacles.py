@@ -6,6 +6,21 @@ import random
 
 import os
 
+class MyStaticObstacle(BoxObstacle):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.check_completeness()
+    def radius(self):
+        l,w,h = self.size()
+        return 0.5*np.sqrt(l**2+w**2)
+    
+class MyDynamicObstacle(DynamicSphereObstacle):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.check_completeness()
+    
+
+
 
 def generate_points(controlPoints,n_points,frac,sigma_x,sigma_y):
 
@@ -50,7 +65,7 @@ def generate_dynamic_obstacle(obstacle_dict,frac=0.6,sigma_x=1,sigma_y=1,degree=
         "type": "splineSphere",
         "geometry": {"trajectory": splineDict, "radius": r},
     }
-    return DynamicSphereObstacle(name="simpleSphere", content_dict=dynamicSphereDict)
+    return MyDynamicObstacle(name="simpleSphere", content_dict=dynamicSphereDict)
 
 
 # dynamic obstacles: spheres with control points and noisy motion
@@ -140,60 +155,15 @@ static_obstacle_dicts = [
             'height': 0.2,
             'length': 0.2,
         }
-    },
-    
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [8.6, -0.5, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
-    },
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [4.0, 4.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
     }
 ]
 
-static_obstacles = [BoxObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
-#print(len(static_obstacles))
+static_obstacles = [MyStaticObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
+
 
 # walls
 
-wall_length = 20
+wall_length = 10
 wall_obstacles_dicts = [
 
     
@@ -272,4 +242,5 @@ wall_obstacles_dicts = [
     },
 ]
 
-wall_obstacles = [BoxObstacle(name=f"wall_{i}", content_dict=obst_dict) for i, obst_dict in enumerate(wall_obstacles_dicts)]
+wall_obstacles = [MyStaticObstacle(name=f"wall_{i}", content_dict=obst_dict) for i, obst_dict in enumerate(wall_obstacles_dicts)]
+
