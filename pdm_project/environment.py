@@ -3,7 +3,8 @@ from urdfenvs.robots.prius import Prius
 import importlib
 import numpy as np
 from global_planner import GlobalPlanner
-from local_planner import LocalPlanner
+# from local_planner import LocalPlanner
+from mpc import MPC
 from trajectory import State
 from trajectory import Trajectory
 import time
@@ -34,15 +35,17 @@ class Robot:
         # initializing a global planner of a certain 'type'
 
     def set_plan(self, global_plan):
+        self.global_plan = global_plan
         # TODO: move local planner to the parking lot env
-        self.local_planner = LocalPlanner(Trajectory(global_plan))  # creating a LocalPlanner instance
+        # self.local_planner = LocalPlanner(Trajectory(global_plan))  # creating a LocalPlanner instance
+        self.local_planner = MPC(Trajectory(global_plan), )  # creating an MPC instance
         self.init_planner = True
 
     def get_target(self):
         if not self.init_planner:
             raise Exception("robot plan not set!")
         # currently getting the target from the local planner based on the current position
-        return self.local_planner.plan(self.state)
+        return self.local_planner.plan(self.state, self.global_plan[0])
 
 
 class ParkingLotEnv:
@@ -89,7 +92,10 @@ class ParkingLotEnv:
     def set_global_plan(self, idx):
         # setting a global plan for each robot
             planner = GlobalPlanner(planner_type="rrt", obstacles=self.static_obstacles)
-            global_plan = planner.plan(self.robots[idx].state.position, ParkingLotEnv.GOAL)
+            #!!!!!!! change this
+            # global_plan = planner.plan(self.robots[idx].state.position, ParkingLotEnv.GOAL) 
+            global_plan = ParkingLotEnv.GOAL.reshape(-1,1).T
+            print(global_plan.shape)
             self.robots[idx].set_plan(global_plan)
     
     def setup_env(self):
