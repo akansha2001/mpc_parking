@@ -9,6 +9,9 @@ from trajectory import Trajectory
 import time
 from obstacles import static_obstacles, dynamic_obstacles, wall_obstacles
 from helper import FileOp
+from helper import bcolors
+import datetime
+
 '''
 The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
 '''
@@ -89,7 +92,11 @@ class ParkingLotEnv:
     def set_global_plan(self, idx):
         # setting a global plan for each robot
             planner = GlobalPlanner(planner_type="rrt", obstacles=self.static_obstacles)
+            start = datetime.datetime.now()
             global_plan = planner.plan(self.robots[idx].state.position, ParkingLotEnv.GOAL)
+            end = datetime.datetime.now()
+            delta = end - start
+            print(bcolors.OKGREEN + "\n\nexecution time:", delta.total_seconds(), "s" + bcolors.ENDC)
             self.robots[idx].set_plan(global_plan)
     
     def setup_env(self):
