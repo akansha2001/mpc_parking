@@ -1,93 +1,27 @@
+
 from mpscenes.obstacles.box_obstacle import BoxObstacle
-from urdfenvs.robots.prius import Prius
+from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
 import numpy as np
 import random
+
 import os
 
-from dataclasses import dataclass
-from omegaconf import OmegaConf
-from typing import Optional
-
-from mpscenes.obstacles.dynamic_obstacle import DynamicObstacle, DynamicGeometryConfig
-from mpscenes.obstacles.box_obstacle import BoxGeometryConfig, BoxObstacle, BoxObstacleConfig
-
-
-@dataclass
-class DynamicBoxGeometryConfig(BoxGeometryConfig, DynamicGeometryConfig):
-    pass
-
-@dataclass
-class DynamicBoxObstacleConfig(BoxObstacleConfig):
-    """Configuration dataclass for box obstacle.
-
-    This configuration class holds information about the position, size
-    and randomization of a dynamic spherical obstacle.
-
-    Parameters:
-    ------------
-
-    geometry : DynamicBoxGeometryConfig : Geometry of the obstacle
-    low: DynamicBoxGeometryConfig : Lower limit for randomization
-    high: DynamicBoxGeometryConfig : Upper limit for randomization
-    """
-
-    geometry: DynamicBoxGeometryConfig
-    low: Optional[DynamicBoxGeometryConfig] = None
-    high: Optional[DynamicBoxGeometryConfig] = None
-
-
-class DynamicBoxObstacle(DynamicObstacle, BoxObstacle):
-
+class MyStaticObstacle(BoxObstacle):
     def __init__(self, **kwargs):
-        schema = OmegaConf.structured(DynamicBoxObstacleConfig)
-        kwargs['schema'] = schema
         super().__init__(**kwargs)
-
+        self.check_completeness()
     def radius(self):
         l,w,h = self.size()
-        return 0.5*(l**2 + w**2)**0.5
-
-
-class StaticBoxObstacle(BoxObstacle):
+        return 0.5*np.sqrt(l**2+w**2)
+    
+class MyDynamicObstacle(DynamicSphereObstacle):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def radius(self):
-        l,w,h = self.size()
-        return 0.5*(l**2 + w**2)**0.5
-      
+        self.check_completeness()
     
-class CarObstacle(Prius):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
-    def radius(self):
-        # TODO: replace with wheelbase
-        return self._wheel_distance/2
-    
-    def position(self):
-        return self.check_state()[0]
 
-class Obstacle:
 
-    def __init__(self,obst_type: str = "static box", **kwargs):
-
-        # check if obstacle type is supported
-        self.obst_type = obst_type
-        if self.obst_type != "static box" and self.obst_type != "dynamic box" and self.obst_type != "car":
-            raise Exception("Invalid obstacle type. Only 'static box', 'dynamic box' and 'car' supported.")
-        
-        
-        if self.obst_type == "static box":
-            self = StaticBoxObstacle(**kwargs)
-        elif self.obst_type == "dynamic box":
-            self = DynamicBoxObstacle(**kwargs)
-        else:
-            self = CarObstacle(**kwargs)
-        
-    
-        
-### TODO: Remove ugly code
 def generate_points(controlPoints,n_points,frac,sigma_x,sigma_y):
 
     new_control_points = []
@@ -131,7 +65,7 @@ def generate_dynamic_obstacle(obstacle_dict,frac=0.6,sigma_x=1,sigma_y=1,degree=
         "type": "splineSphere",
         "geometry": {"trajectory": splineDict, "radius": r},
     }
-    return Obstacle(obst_type= "box", name="simpleSphere", content_dict=dynamicSphereDict)
+    return MyDynamicObstacle(name="simpleSphere", content_dict=dynamicSphereDict)
 
 
 # dynamic obstacles: spheres with control points and noisy motion
@@ -148,7 +82,7 @@ dynamic_obstacle_dicts = [
 
 ]
 
-# dynamic_obstacles = [generate_dynamic_obstacle(dynamic_obstacle_dict) for dynamic_obstacle_dict in dynamic_obstacle_dicts]
+dynamic_obstacles = [generate_dynamic_obstacle(dynamic_obstacle_dict) for dynamic_obstacle_dict in dynamic_obstacle_dicts]
 
 
 # static obstacles: boxes of varying heights and widths
@@ -224,7 +158,7 @@ static_obstacle_dicts = [
     }
 ]
 
-static_obstacles = [Obstacle(obst_type= "static box", name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
+static_obstacles = [MyStaticObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
 
 
 # walls
@@ -308,10 +242,5 @@ wall_obstacles_dicts = [
     },
 ]
 
-wall_obstacles = [Obstacle(type = "box", name=f"wall_{i}", content_dict=obst_dict) for i, obst_dict in enumerate(wall_obstacles_dicts)]
+wall_obstacles = [MyStaticObstacle(name=f"wall_{i}", content_dict=obst_dict) for i, obst_dict in enumerate(wall_obstacles_dicts)]
 
-dynamic_obstacles = []
-
-# static_obstacles = []
-
-# wall_obstacles = []
