@@ -2,7 +2,7 @@ import gymnasium as gym
 from urdfenvs.robots.prius import Prius
 import numpy as np
 #from obstacles_bakul import static_obstacles, dynamic_obstacles, wall_obstacles, parking_spaces, parking_limits, road_limits
-from obstacles import wall_obstacles
+from obstacles import wall_obstacles, static_obstacles
 import time
 
 class Robot:
@@ -35,5 +35,5 @@ class Robot:
 if __name__ == "__main__":
     robot = Robot()
     # robot.set_obstacles(parking_spaces+parking_limits+wall_obstacles+road_limits)
-    robot.set_obstacles(wall_obstacles)
+    robot.set_obstacles(wall_obstacles + static_obstacles)
     robot.render()

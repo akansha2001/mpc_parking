@@ -18,8 +18,9 @@ class RRT():
     def __init__(self,staticObstacles=None, wallObstacles=None):
         
         # Public attributes
-        #self.space = ob.DubinsStateSpace()
-        self.space = ob.SE2StateSpace()
+        self.space = ob.DubinsStateSpace(2.0, False)
+        
+        #self.space = ob.SE2StateSpace()
         # set the bounds for the R^2 part of SE(2)
         bounds = ob.RealVectorBounds(2)
         bounds.setLow(-10)
@@ -46,10 +47,11 @@ class RRT():
         #self.ss.setStatePropagator(oc.StatePropagatorFn(self.propagate))
         #self.si.setPropagationStepSize(.6)
         self.planner=og.RRT(self.si)
-        self.planner.setRange(0.4)
-        self.planner.setGoalBias(0.05)
+        self.planner.setRange(0.6)
+        self.planner.setGoalBias(0.1)
 
     def plan(self, start, goal):
+        print(goal)
         x_start ,y_start ,yaw_start = start[0], start[1], start[2]
         x_goal = goal[0]
         y_goal = goal[1]
@@ -65,7 +67,7 @@ class RRT():
         end().setYaw(yaw_goal)
         self.ss.setStartAndGoalStates(start,end, 0.05)
         self.ss.setPlanner(self.planner)
-        self.solved = self.ss.solve(500.0)
+        self.solved = self.ss.solve(100.0)
         if self.solved: 
             self.path=self.ss.getSolutionPath().printAsMatrix()
             self.path = np.fromstring(self.path.strip(), sep=' ')  #The output of printAsMatrix() is a string
@@ -85,8 +87,8 @@ class RRT():
     def carPolygon(self,x,y,yaw): #returns a polygon for the car given a position and heading
                
         #geometry of the car
-        carLength = 1.4
-        carWidth = 0.6
+        carLength = 1
+        carWidth = 0.45
         return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),
@@ -103,8 +105,8 @@ class RRT():
                                         (position[0]-width/2, position[1]+length/2)))
     def wallPolygon(self, obstacle):
         position = np.array([obstacle.position()[0], obstacle.position()[1]])
-        width = obstacle.length() + 0.2
-        length = obstacle.width() + 0.2
+        width = obstacle.length() #+ 0.2
+        length = obstacle.width() #+ 0.2
         return Polygon(shell=((position[0]+width/2, position[1]+length/2),
                                         (position[0]+width/2, position[1]-length/2),
                                         (position[0]-width/2, position[1]-length/2),

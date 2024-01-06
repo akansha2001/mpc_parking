@@ -52,7 +52,7 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-    GOAL = np.array([-0.8985, 0.5231, 0])
+    GOAL = np.array([-0.8985, -4.2, 0])
     def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 

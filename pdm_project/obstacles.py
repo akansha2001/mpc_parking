@@ -46,7 +46,7 @@ def generate_arithmetic_sequence(center, difference, n):
 
 def create_parking_positions(length_x, length_y, height, road_width):
     """Creates parking positions based on length_x, length_y, height, and road_width."""
-    parking_lot_y = generate_arithmetic_sequence(0, length_y, 9)
+    parking_lot_y = generate_arithmetic_sequence(0, length_y, 5)
     parking_lot_x = [-(length_x * 1.5 + road_width), -length_x / 2, length_x / 2, length_x * 1.5 + road_width]
 
     parking_positions = []
@@ -64,7 +64,7 @@ def generate_scene():
     wall_length_x = 6.6  # wall length along y -- half length
     wall_height = 1
     wall_thickness = 0.1
-    mid_wall_length = 1.2 * 8
+    mid_wall_length = 1.2 * 15
     wall_positions = [[wall_length_x, 0.0, wall_height / 2],
                       [0.0, wall_length_y, wall_height / 2],
                       [0.0, -wall_length_y, wall_height / 2],
@@ -94,25 +94,5 @@ def generate_scene():
 
 
 static_obstacles, dynamic_obstacles, wall_obstacles = generate_scene()
-import numpy as np
-import matplotlib.pyplot as plt
 
-# Initialize empty plot for the path
-fig, ax = plt.subplots()
-obstacle_plots = []
-wall_plots = []
 
-#print(len(static_obstacles))
-for obstacle in wall_obstacles+static_obstacles:
-    obstacle_position = np.array([obstacle.position()[1], obstacle.position()[0]])  # Corrected order
-    obstacle_width = obstacle.width()
-    obstacle_height = obstacle.length()
-    #print(f"Wall Obstacle: Position {obstacle_position}, Width {obstacle_width}, Height {obstacle_height}")
-    rect = plt.Rectangle((obstacle_position[0] - obstacle_width / 2, obstacle_position[1] - obstacle_height / 2),
-                            obstacle_width, obstacle_height, color='green', alpha=0.5)
-    wall_plots.append(rect)
-    ax.add_patch(rect)
-plt.xlim(-17,17)
-plt.ylim(-17,17)
-plt.grid(which='both')
-plt.show()
