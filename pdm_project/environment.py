@@ -38,7 +38,7 @@ class Robot:
         self.global_plan = global_plan
         # TODO: move local planner to the parking lot env
         # self.local_planner = LocalPlanner(Trajectory(global_plan))  # creating a LocalPlanner instance
-        self.local_planner = MPC(Trajectory(global_plan), )  # creating an MPC instance
+        self.local_planner = MPC(Trajectory(global_plan))  # creating an MPC instance
         self.init_planner = True
 
     def get_target(self):
@@ -69,6 +69,9 @@ class ParkingLotEnv:
         self.robot_models = []
         self.rob_spawn_pos = np.array([])
         # assigning obstacles to class members
+        self.static_obstacles = []
+        self.wall_obstacles = []
+        self.dynamic_obstacles = []
         if self.stat_obs_flag:
             self.static_obstacles = static_obstacles
             self.wall_obstacles=[]
@@ -86,7 +89,6 @@ class ParkingLotEnv:
             # spawn positions extracted, again used while creating the env
             self.rob_spawn_pos = np.append(self.rob_spawn_pos, self.robots[i].spawn_pos)
             self.set_global_plan(i)
-
         self.n_robots = len(self.robots)
 
     def set_global_plan(self, idx):
@@ -118,7 +120,6 @@ class ParkingLotEnv:
         if self.dyn_obs_flag:
             for obs in self.dynamic_obstacles:
                 self.env.add_obstacle(obs)
-
 
         # the size of "action" is the size of the command that a robot takes (if there is one robot)
         # format: [forward velocity, yaw rate]

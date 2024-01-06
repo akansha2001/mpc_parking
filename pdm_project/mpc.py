@@ -28,8 +28,7 @@ class MPC:
         self.r = r
         self.lr = 0.494/2
         self.L = 0.494
-        self.setup_model(model_type=model_type)
-
+        self.model_type = model_type
 
     def get_control_input(self, N, x_init, x_target, obstacles):
 
@@ -171,11 +170,12 @@ class MPC:
         self.mpc2.bounds['upper', '_x', 'yaw'] = 2*np.pi
         # SET INPUT BOUNDS FOR v,phi: HARDCODED
         self.mpc2.bounds['lower', '_u', 'v'] = 0.
-        self.mpc2.bounds['upper', '_u', 'v'] = 5.
+        self.mpc2.bounds['upper', '_u', 'v'] = 4.
         self.mpc2.bounds['lower', '_u', 'phi'] = -1.
         self.mpc2.bounds['upper', '_u', 'phi'] = 1.
 
     def plan(self, state, x_target, obstacles = None):
+        self.setup_model(model_type=self.model_type)
         # objective function
         mterm = (x_target[0] - self.x)**2 + \
             (x_target[1] - self.y)**2 + (x_target[2] - self.yaw)**2
@@ -186,7 +186,6 @@ class MPC:
         # getting the optimal step
         x0 = np.append(state.position, state.steering)
         self.mpc2.x0 = x0
-        self.mpc2.set_initial_guess()
         
         # mterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
         # lterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
@@ -195,6 +194,7 @@ class MPC:
         self.mpc2.set_rterm(v=self.r, phi=self.r)
         # setup mpc
         self.mpc2.setup()
+        self.mpc2.set_initial_guess()
         # configure simulator
         simulator = do_mpc.simulator.Simulator(self.model2)
         # params for simulator
