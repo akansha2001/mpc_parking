@@ -3,24 +3,18 @@ import csv
 
 import numpy as np
 import matplotlib.pyplot as plt
-from obstacles import static_obstacles, wall_obstacles
-from mpscenes.obstacles.box_obstacle import BoxObstacle
-from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
-from shapely import Polygon
+
 
 #for plotting polygons
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 from matplotlib.collections import PatchCollection
 #print(len(static_obstacles))
-from shapely import wkt
 from matplotlib.patches import Rectangle
 from matplotlib.animation import FuncAnimation
-from IPython.display import HTML, display
 
-#Polygon functions
-from helper import *
-
+# for generate_points()
+import random
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -174,3 +168,31 @@ class Plot:
         plt.grid(which='minor', linestyle=':', linewidth='0.5')
         plt.savefig('data/path_plot.png')
         plt.show()
+
+
+def generate_points(controlPoints,n_points,frac,sigma_x,sigma_y):
+
+    new_control_points = []
+    z = controlPoints[0][-1]
+
+    for i in range(len(controlPoints)-1):
+        p1 = controlPoints[i][:2]
+        p2 = controlPoints[i+1][:2]
+
+        x1 = p1[0]
+        y1 = p1[1]
+        x2 = p2[0]
+        y2 = p2[1]
+
+        points_x = [x1 + j*(x2 - x1)/(n_points[i] + 1) for j in range(n_points[i])]
+        points_y = [y1 + j*(y2 - y1)/(n_points[i] + 1) for j in range(n_points[i])]
+
+        chosen_indices = random.sample([j for j in range(n_points[i])], k = int(frac*n_points[i]))
+        chosen_indices.sort()
+
+        chosen_points_x = [points_x[j] + sigma_x*random.random() for j in chosen_indices]
+        chosen_points_y = [points_y[j] + sigma_y*random.random() for j in chosen_indices]
+
+        for j in range(len(chosen_points_x)):
+            new_control_points.append([chosen_points_x[j],chosen_points_y[j],z])
+    return new_control_points

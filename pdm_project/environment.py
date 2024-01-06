@@ -7,7 +7,7 @@ from local_planner import LocalPlanner
 from trajectory import State
 from trajectory import Trajectory
 import time
-from obstacles import static_obstacles, dynamic_obstacles, wall_obstacles
+from obstacles import generate_scene
 from helper import FileOp
 from helper import bcolors
 import datetime
@@ -52,7 +52,7 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-    GOAL = np.array([10., 0., 0.])
+    GOAL = np.array([-5.7015, 3.0769, np.pi])
     def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
@@ -65,15 +65,14 @@ class ParkingLotEnv:
         self.file=FileOp("data/robot_pos.csv")
 
         # creating a list of robots (only 1 is needed for now)
-        self.robots = [Robot()]
+        self.robots = [Robot(spawn_pos=np.array([-2.5515, -8.9231, np.pi/2]))]
         self.robot_models = []
         self.rob_spawn_pos = np.array([])
         # assigning obstacles to class members
+        static_obstacles, dynamic_obstacles, wall_obstacles = generate_scene()
         if self.stat_obs_flag:
             self.static_obstacles = static_obstacles
-            self.wall_obstacles=[]
-            #self.wall_obstacles = wall_obstacles
-            #self.obstacles = static_obstacles + wall_obstacles
+            self.wall_obstacles = wall_obstacles
         if self.dyn_obs_flag:
             self.dynamic_obstacles = dynamic_obstacles
 
@@ -94,6 +93,8 @@ class ParkingLotEnv:
             planner = GlobalPlanner(planner_type="rrt", obstacles=self.static_obstacles)
             start = datetime.datetime.now()
             global_plan = planner.plan(self.robots[idx].state.position, ParkingLotEnv.GOAL)
+            #! uncomment to not use rrt
+            # global_plan = [ParkingLotEnv.GOAL]
             end = datetime.datetime.now()
             delta = end - start
             print(bcolors.OKGREEN + "\n\nexecution time:", delta.total_seconds(), "s" + bcolors.ENDC)

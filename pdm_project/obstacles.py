@@ -1,275 +1,92 @@
-
 from mpscenes.obstacles.box_obstacle import BoxObstacle
 from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
 import numpy as np
 import random
-
 import os
 
+def create_obstacle_objects(positions, widths, height, lengths):
+    """Creates a list of BoxObstacle objects from lists of positions, widths, and heights."""
+    obstacle_objects = [
+        BoxObstacle(name=f"wall_{i}", content_dict={
+            'type': 'box',
+            'geometry': {
+                'position': positions[i],
+                'width': widths[i],
+                'height': height,
+                'length': lengths[i]
+            },
+            'high': {
+                'position': positions[i],
+                'width': widths[i],
+                'height': height,
+                'length': lengths[i],
+            },
+            'low': {
+                'position': positions[i],
+                'width': widths[i],
+                'height': height,
+                'length': lengths[i],
+            },
+            'rgba': [0.1, 0.3, 0.3, 1.0],
+        }) for i in range(len(positions))
+    ]
 
-def generate_points(controlPoints,n_points,frac,sigma_x,sigma_y):
-
-    new_control_points = []
-    z = controlPoints[0][-1]
-
-    for i in range(len(controlPoints)-1):
-        p1 = controlPoints[i][:2]
-        p2 = controlPoints[i+1][:2]
-
-        x1 = p1[0]
-        y1 = p1[1]
-        x2 = p2[0]
-        y2 = p2[1]
-
-        points_x = [x1 + j*(x2 - x1)/(n_points[i] + 1) for j in range(n_points[i])]
-        points_y = [y1 + j*(y2 - y1)/(n_points[i] + 1) for j in range(n_points[i])]
-
-        chosen_indices = random.sample([j for j in range(n_points[i])], k = int(frac*n_points[i]))
-        chosen_indices.sort()
-
-        chosen_points_x = [points_x[j] + sigma_x*random.random() for j in chosen_indices]
-        chosen_points_y = [points_y[j] + sigma_y*random.random() for j in chosen_indices]
-
-        for j in range(len(chosen_points_x)):
-            new_control_points.append([chosen_points_x[j],chosen_points_y[j],z])
-    return new_control_points
-
-def generate_dynamic_obstacle(obstacle_dict,frac=0.6,sigma_x=1,sigma_y=1,degree=2,duration=10):
-
-    r = obstacle_dict["r"]
-    controlPoints = obstacle_dict["controlPoints"]
-    controlPoints = [control_point + [r] for control_point in controlPoints]
-    n_points = obstacle_dict["n_points"]
-    controlPoints = generate_points(controlPoints,n_points,frac,sigma_x,sigma_y)
-    splineDict = {
-        "degree": degree,
-        "controlPoints": controlPoints,
-        "duration": duration,
-    }
-    dynamicSphereDict = {
-        "type": "splineSphere",
-        "geometry": {"trajectory": splineDict, "radius": r},
-    }
-    return DynamicSphereObstacle(name="simpleSphere", content_dict=dynamicSphereDict)
+    return obstacle_objects
 
 
-# dynamic obstacles: spheres with control points and noisy motion
-
-dynamic_obstacle_dicts = [
-    {"r":0.2,
-     "controlPoints":[[0.0,0.0],[4.0,0.0],[4.0,3.0],[0.0,0.0]],
-     "n_points": [5,5,5] 
-     },
-     {"r":0.4,
-     "controlPoints":[[1.0,0.0],[4.0,5.0],[4.0,3.0]],
-     "n_points": [5,5] 
-     }
-
-]
-
-dynamic_obstacles = [generate_dynamic_obstacle(dynamic_obstacle_dict) for dynamic_obstacle_dict in dynamic_obstacle_dicts]
+def generate_arithmetic_sequence(center, difference, n):
+    """Generates an arithmetic sequence based on the center, difference, and length."""
+    if n % 2 == 0:
+        center -= difference / 2  # If the sequence length is even, adjust the center to the left
+    tmp = [center + i * difference for i in range(-(n // 2), n // 2 + 1)]
+    tmp = list(map(lambda x: round(x, 2), tmp))
+    sequence = sorted(tmp)
+    return sequence
 
 
-# static obstacles: boxes of varying heights and widths
+def create_parking_positions(length_x, length_y, height, road_width):
+    """Creates parking positions based on length_x, length_y, height, and road_width."""
+    parking_lot_y = generate_arithmetic_sequence(0, length_y, 9)
+    parking_lot_x = [-(length_x * 1.5 + road_width), -length_x / 2, length_x / 2, length_x * 1.5 + road_width]
 
-static_obstacle_dicts = [
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [2.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
-    },
+    parking_positions = []
+    for i in range(len(parking_lot_x)):
+        for j in range(len(parking_lot_y)):
+            position = [parking_lot_x[i], parking_lot_y[j], height / 2]
+            parking_positions.append(position)
 
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [4.0, -3.0 , 0.2],
-            'width': 0.4,
-            'height': 0.4,
-            'length': 0.4,
-        },
-        'movable': False,
-        'high': {
-            'position' : [7.0, 2.0, 0.2],
-            'width': 0.4,
-            'height': 0.4,
-            'length': 0.4,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.2],
-            'width': 0.4,
-            'height': 0.4,
-            'length': 0.4,
-        }
-    },
+    return parking_positions
 
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [6.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
-    },
-    
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [8.6, -0.5, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
-    },
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [4.0, 4.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
-    }
-]
 
-static_obstacles = [BoxObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
-#print(len(static_obstacles))
+def generate_scene():
+    '''WALLS'''
+    wall_length_y = 7.59  # wall length along x -- half length
+    wall_length_x = 6.6  # wall length along y -- half length
+    wall_height = 1
+    wall_thickness = 0.1
+    mid_wall_length = 1.2 * 8
+    wall_positions = [[wall_length_x, 0.0, wall_height / 2],
+                      [0.0, wall_length_y, wall_height / 2],
+                      [0.0, -wall_length_y, wall_height / 2],
+                      [5.7, -wall_length_y, wall_height / 2],
+                      [-5.7, -wall_length_y, wall_height / 2],
+                      [-wall_length_x, 0.0, wall_height / 2],
+                      [0, 0, wall_height / 2]]
+    wall_widths = [wall_length_y * 2, wall_thickness, wall_thickness, wall_thickness, wall_thickness,
+                   wall_length_y * 2, mid_wall_length]  # length along y-axis
+    wall_lengths = [wall_thickness, wall_length_x * 2, 1.8 * 2, 1.8, 1.8, wall_thickness, wall_thickness]  # length along x-axis
 
-# walls
+    '''PARKING LIMITS'''
+    parking_length_x = 1.8
+    parking_length_y = 1.2
+    parking_height = 0.25
+    road_width = 3
 
-wall_length = 20
-wall_obstacles_dicts = [
+    parking_positions = create_parking_positions(parking_length_x, parking_length_y, parking_height, road_width)
+    parking_widths = [wall_thickness] * len(parking_positions)
+    parking_lengths = [parking_length_x] * len(parking_positions)
 
-    
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [wall_length/2.0, 0.0, 0.4], 'width': wall_length/3.0, 'height': 0.8, 'length': 0.1
-        },
-        'high': {
-            'position' : [wall_length/2.0, 0.0, 0.4],
-            'width': wall_length/3.0,
-            'height': 0.8,
-            'length': 0.1,
-        },
-        'low': {
-            'position' : [wall_length/2.0, 0.0, 0.4],
-            'width': wall_length/3.0,
-            'height': 0.8,
-            'length': 0.1,
-        },
-    },
-    
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [0.0, wall_length/2.0, 0.4], 'width': 0.1, 'height': 0.8, 'length': wall_length
-        },
-        'high': {
-            'position' : [0.0, wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-        'low': {
-            'position' : [0.0, wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-    },
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [0.0, -wall_length/2.0, 0.4], 'width': 0.1, 'height': 0.8, 'length': wall_length
-        },
-        'high': {
-            'position' : [0.0, -wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-        'low': {
-            'position' : [0.0, -wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-    },
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [-wall_length/2.0, 0.0, 0.4], 'width': wall_length, 'height': 0.8, 'length': 0.1
-        },
-        'high': {
-            'position' : [-wall_length/2.0, 0.0, 0.4],
-            'width': wall_length,
-            'height': 0.8,
-            'length': 0.1,
-        },
-        'low': {
-            'position' : [-wall_length/2.0, 0.0, 0.4],
-            'width': wall_length,
-            'height': 0.8,
-            'length': 0.1,
-        },
-    },
-]
-
-wall_obstacles = [BoxObstacle(name=f"wall_{i}", content_dict=obst_dict) for i, obst_dict in enumerate(wall_obstacles_dicts)]
+    static_obstacles = create_obstacle_objects(parking_positions, parking_widths, parking_height, parking_lengths)
+    dynamic_obstacles = []
+    wall_obstacles = create_obstacle_objects(wall_positions, wall_widths, wall_height, wall_lengths)
+    return static_obstacles, dynamic_obstacles, wall_obstacles

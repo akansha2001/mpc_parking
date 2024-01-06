@@ -12,9 +12,6 @@ except ImportError:
 import numpy as np
 from functools import partial
 from math import sin, cos
-from obstacles import static_obstacles
-from mpscenes.obstacles.box_obstacle import BoxObstacle
-from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
 from shapely import Polygon
 class RRT():
 
