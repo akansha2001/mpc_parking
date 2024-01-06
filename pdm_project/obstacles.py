@@ -83,7 +83,14 @@ dynamic_obstacle_dicts = [
 ]
 
 dynamic_obstacles = [generate_dynamic_obstacle(dynamic_obstacle_dict) for dynamic_obstacle_dict in dynamic_obstacle_dicts]
-
+dynamic_obstacle_dicts = [
+    {"r":0.2,
+     "controlPoints":[[5,0.0],[5,0.0],[5,0.0],[5,0.0]],
+     "n_points": [5,5,5] 
+     },
+    
+]
+dynamic_obstacles = [generate_dynamic_obstacle(dynamic_obstacle_dict) for dynamic_obstacle_dict in dynamic_obstacle_dicts]
 
 # static obstacles: boxes of varying heights and widths
 

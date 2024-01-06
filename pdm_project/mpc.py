@@ -18,7 +18,7 @@ class MPC:
                  n_horizon=7,
                  t_step=0.1,
                  n_robust=1,
-                 r=1e-2,
+                 r=1e-5,
                  model_type='continuous'):  # TODO: check discrete too
 
         self.model = do_mpc.model.Model(model_type)
@@ -168,6 +168,10 @@ class MPC:
         self.mpc2.bounds['upper', '_x', 'delta'] = np.pi/6
         self.mpc2.bounds['lower', '_x', 'yaw'] = -2*np.pi
         self.mpc2.bounds['upper', '_x', 'yaw'] = 2*np.pi
+
+        # SET MIN R
+        self.R_min = self.L/np.tan(np.pi/6) 
+
         # SET INPUT BOUNDS FOR v,phi: HARDCODED
         self.mpc2.bounds['lower', '_u', 'v'] = 0.
         self.mpc2.bounds['upper', '_u', 'v'] = 4.
@@ -192,6 +196,11 @@ class MPC:
         self.mpc2.set_objective(mterm=mterm, lterm=lterm)
         # penalty for control inputs
         self.mpc2.set_rterm(v=self.r, phi=self.r)
+        # HARDCODED circle avoidance constraint
+        self.mpc2.set_nl_cons("circle", 0.2**2 - (self.x - 5)**2 - (self.y - 0)**2 , 0)
+        # TODO: set phi bound
+        self.mpc2.set_nl_cons("omega_lb", self.phi - 0.7*self.v/self.R_min, 0)
+        self.mpc2.set_nl_cons("omega_ub", -self.phi - 0.7*self.v/self.R_min, 0)
         # setup mpc
         self.mpc2.setup()
         self.mpc2.set_initial_guess()
@@ -199,7 +208,7 @@ class MPC:
         simulator = do_mpc.simulator.Simulator(self.model2)
         # params for simulator
         simulator.set_param(t_step=self.t_step)
-
+        
         u0 = self.mpc2.make_step(x0) 
         print("\n\n\n\n", u0)
         return u0 
