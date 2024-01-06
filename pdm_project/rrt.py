@@ -18,7 +18,8 @@ class RRT():
     def __init__(self,staticObstacles=None, wallObstacles=None):
         
         # Public attributes
-        self.space = ob.DubinsStateSpace()
+        #self.space = ob.DubinsStateSpace()
+        self.space = ob.SE2StateSpace()
         # set the bounds for the R^2 part of SE(2)
         bounds = ob.RealVectorBounds(2)
         bounds.setLow(-10)
@@ -46,7 +47,7 @@ class RRT():
         #self.si.setPropagationStepSize(.6)
         self.planner=og.RRT(self.si)
         self.planner.setRange(0.4)
-        self.planner.setGoalBias(0.1)
+        self.planner.setGoalBias(0.05)
 
     def plan(self, start, goal):
         x_start ,y_start ,yaw_start = start[0], start[1], start[2]
@@ -64,7 +65,7 @@ class RRT():
         end().setYaw(yaw_goal)
         self.ss.setStartAndGoalStates(start,end, 0.05)
         self.ss.setPlanner(self.planner)
-        self.solved = self.ss.solve(100.0)
+        self.solved = self.ss.solve(500.0)
         if self.solved: 
             self.path=self.ss.getSolutionPath().printAsMatrix()
             self.path = np.fromstring(self.path.strip(), sep=' ')  #The output of printAsMatrix() is a string
@@ -81,10 +82,11 @@ class RRT():
         else:
             print("No solution found")
 
-    def carPolygon(self, x, y, yaw): #returns a polygon for the car given a position and heading
+    def carPolygon(self,x,y,yaw): #returns a polygon for the car given a position and heading
+               
         #geometry of the car
-        carLength = 4.599 * 0.4
-        carWidth = 1.782 * 0.4
+        carLength = 1.4
+        carWidth = 0.6
         return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),
@@ -94,16 +96,15 @@ class RRT():
     def obstaclePolygon(self, obstacle):
         position = np.array([obstacle.position()[0], obstacle.position()[1]])
         width = obstacle.width()
-        length = obstacle.length()
+        length = obstacle.length() 
         return Polygon(shell=((position[0]+width/2, position[1]+length/2),
                                         (position[0]+width/2, position[1]-length/2),
                                         (position[0]-width/2, position[1]-length/2),
                                         (position[0]-width/2, position[1]+length/2)))
-    
-    def wallPolygon(self,obstacle):
-        position = np.array([obstacle.position()[1], obstacle.position()[0]])
-        width = obstacle.width()
-        length = obstacle.length()
+    def wallPolygon(self, obstacle):
+        position = np.array([obstacle.position()[0], obstacle.position()[1]])
+        width = obstacle.length() + 0.2
+        length = obstacle.width() + 0.2
         return Polygon(shell=((position[0]+width/2, position[1]+length/2),
                                         (position[0]+width/2, position[1]-length/2),
                                         (position[0]-width/2, position[1]-length/2),
@@ -139,10 +140,12 @@ class RRT():
         car_x = state.getX()
         car_y = state.getY()
         car_yaw = state.getYaw()
+        #print(len(self.static_obstacles))
         polygonCar = self.carPolygon(car_x, car_y, car_yaw)
         if self.static_obstacles is not None:
-            for obstacle in self.static_obstacles:
-                polygonObstacles = self.obstaclePolygon(obstacle)
+            for obstacle in (self.static_obstacles + self.wall_obstacles):
+                polygonObstacles = self.wallPolygon(obstacle)
                 if polygonCar.intersects(polygonObstacles):
+                    #print("Collision Avoided",car_x, car_y)
                     return False
         return spaceInformation.satisfiesBounds(state)

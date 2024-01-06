@@ -89,4 +89,30 @@ def generate_scene():
 
     dynamic_obstacles = []
     wall_obstacles = create_obstacle_objects(wall_positions, wall_widths, wall_height, wall_lengths)
+
     return static_obstacles, dynamic_obstacles, wall_obstacles
+
+
+static_obstacles, dynamic_obstacles, wall_obstacles = generate_scene()
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Initialize empty plot for the path
+fig, ax = plt.subplots()
+obstacle_plots = []
+wall_plots = []
+
+#print(len(static_obstacles))
+for obstacle in wall_obstacles+static_obstacles:
+    obstacle_position = np.array([obstacle.position()[1], obstacle.position()[0]])  # Corrected order
+    obstacle_width = obstacle.width()
+    obstacle_height = obstacle.length()
+    #print(f"Wall Obstacle: Position {obstacle_position}, Width {obstacle_width}, Height {obstacle_height}")
+    rect = plt.Rectangle((obstacle_position[0] - obstacle_width / 2, obstacle_position[1] - obstacle_height / 2),
+                            obstacle_width, obstacle_height, color='green', alpha=0.5)
+    wall_plots.append(rect)
+    ax.add_patch(rect)
+plt.xlim(-17,17)
+plt.ylim(-17,17)
+plt.grid(which='both')
+plt.show()

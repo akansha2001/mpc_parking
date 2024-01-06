@@ -7,11 +7,11 @@ class LocalPlanner:
         self.trajectory = trajectory 
         self.max_vel = max_vel        
         #! HARDCODED
-        self.look_ahead_time = 2.0
+        self.look_ahead_time = 0.5
         self.speed_factor =  0.05
         self.look_ahead_thresh = 0.1
         self.stop_thresh = 0.1
-        self.Kp = 1
+        self.Kp = 3
 
     def plan(self, state):
         # extracting necessary state variables

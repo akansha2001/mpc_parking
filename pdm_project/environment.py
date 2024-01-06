@@ -52,7 +52,7 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-    GOAL = np.array([-5.6985, 2.9231, np.pi])
+    GOAL = np.array([-0.8985, 0.5231, 0])
     def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
@@ -73,7 +73,7 @@ class ParkingLotEnv:
         if self.stat_obs_flag:
             self.static_obstacles = static_obstacles
             self.wall_obstacles = wall_obstacles
-            self.static_obstacles.extend(self.wall_obstacles)
+            #self.static_obstacles.extend(self.wall_obstacles)
 
         if self.dyn_obs_flag:
             self.dynamic_obstacles = dynamic_obstacles
@@ -92,7 +92,7 @@ class ParkingLotEnv:
 
     def set_global_plan(self, idx):
         # setting a global plan for each robot
-            planner = GlobalPlanner(planner_type="rrt", obstacles=self.static_obstacles)
+            planner = GlobalPlanner(planner_type="rrt", static_obstacles=self.static_obstacles, wall_obstacles=self.wall_obstacles)
             start = datetime.datetime.now()
             global_plan = planner.plan(self.robots[idx].state.position, ParkingLotEnv.GOAL)
             #! uncomment to not use rrt
@@ -156,6 +156,7 @@ class ParkingLotEnv:
                     setattr(robot.state, key, np.array(value))
             # print(robot.state.forward_velocity)
                 self.file.write(robot.state.position)
+            print(robot.state.position)
         
 
     def get_action(self):

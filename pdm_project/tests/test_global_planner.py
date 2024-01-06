@@ -1,8 +1,8 @@
 # from rrt import RRT
 import numpy as np
-from dummy_planner import DummyPlanner
+#from dummy_planner import DummyPlanner
 from rrt import RRT
-from obstacles import static_obstacles, wall_obstacles
+from obstacles import static_obstacles, wall_obstacles, parking_lot
 class GlobalPlanner:
     def __init__(self, planner_type="dummy",static_obstacles=None, wall_obstacles=None):
         # initializing the planner based on type
@@ -15,8 +15,6 @@ class GlobalPlanner:
         """
         if planner_type == "rrt":
             return RRT(static_obstacles, wall_obstacles)  # replace with the actual RRT planner class
-        elif planner_type == "dummy":
-            return DummyPlanner()
         else:
             raise ValueError(f"Invalid planner type: {planner_type}")
     def plan(self, start, goal):
@@ -33,7 +31,8 @@ class GlobalPlanner:
         return self.planner.plan(start, goal)
 
 if __name__ == "__main__":
-    global_obj=GlobalPlanner(planner_type="rrt")
-    start_goal=np.array([-6.0,0.0,0.0])
-    dummy_goal=np.array([6.0,8,0.0])
+    global_obj=GlobalPlanner(planner_type="rrt", static_obstacles=static_obstacles, wall_obstacles=wall_obstacles)
+    start_goal=np.array([-2.5515, -8.9231, np.pi/2])
+    #dummy_goal=np.array([5.00, 4.00, 0.00])
+    dummy_goal=np.array([-2.5485, -0.6769, 0])
     global_obj.plan(start_goal, dummy_goal)    
