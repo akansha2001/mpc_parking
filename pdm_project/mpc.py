@@ -15,7 +15,7 @@ class MPC:
     def __init__(self,
                  trajectory: Trajectory,
                 #  vehicle,
-                 n_horizon=7,
+                 n_horizon=10,
                  t_step=0.1,
                  n_robust=1,
                  r=1e-5,
@@ -101,13 +101,13 @@ class MPC:
         # define weights for costs
         # HARDCODED
         # TODO: tune
-        K_pos = 1.0
+        K_pos = 3.0
         K_yaw = 1.0
         K_delta = 1.0
 
         w_track = 1.0
-        w_progress = 0.0
-        w_avoid = 1.0
+        w_progress = 4.0
+        w_avoid = 16.0
 
         # HARDCODED
         v_ref = 4.0
@@ -116,12 +116,10 @@ class MPC:
         J_track = K_pos*((x_target[0] - self.x)**2 + (x_target[1] - self.y)**2) + \
                  K_yaw*(x_target[2] - self.yaw)**2 + K_delta*(delta_ref - self.delta)
         J_progress = (self.v- v_ref)**2
-        J_avoid = 1.0**2 - (self.x - 5)**2 - (self.y - 0.1)**2
+        J_avoid = 1.0**2 - (self.x - 2.5)**2 - (self.y - 0.1)**2
         
         mterm = w_track*J_track +  w_avoid*J_avoid
         lterm = mterm + w_progress*J_progress 
-
-        
 
         # TODO: ensure that delta can be used in the objective function
         # getting the optimal step

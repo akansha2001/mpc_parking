@@ -97,7 +97,7 @@ static_obstacle_dicts = [
     {
         'type': 'box',
         'geometry': {
-            'position' : [5.0, 0.0, 0.1],
+            'position' : [2.5, 0.0, 0.1],
             'width': 0.2,
             'height': 0.2,
             'length': 0.2,
