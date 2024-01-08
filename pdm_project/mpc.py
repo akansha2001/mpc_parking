@@ -93,11 +93,35 @@ class MPC:
     def plan(self, state, x_target, obstacles = None):
         self.setup_model(model_type=self.model_type)
         # objective function
-        dist = np.sqrt((self.x - 5)**2 + (self.y)**2)
-        mterm = (x_target[0] - self.x)**2 + \
-            (x_target[1] - self.y)**2 + (x_target[2] - self.yaw)**2 + (10/dist)
-        lterm = (x_target[0] - self.x)**2 + \
-            (x_target[1] - self.y)**2 + (x_target[2] - self.yaw)**2 + (10/dist)
+        alpha = np.arctan2(x_target[1] - state.position[1], x_target[0] - state.position[0]) - state.position[2]
+        ld = np.linalg.norm(x_target[:2]-state.position[:2],ord=2)
+        delta_ref = np.arctan(2*self.L*np.sin(alpha)/ld)
+
+
+        # define weights for costs
+        # HARDCODED
+        # TODO: tune
+        K_pos = 1.0
+        K_yaw = 1.0
+        K_delta = 1.0
+
+        w_track = 1.0
+        w_progress = 0.0
+        w_avoid = 1.0
+
+        # HARDCODED
+        v_ref = 4.0
+        # costs
+        # TODO: saturate
+        J_track = K_pos*((x_target[0] - self.x)**2 + (x_target[1] - self.y)**2) + \
+                 K_yaw*(x_target[2] - self.yaw)**2 + K_delta*(delta_ref - self.delta)
+        J_progress = (self.v- v_ref)**2
+        J_avoid = 1.0**2 - (self.x - 5)**2 - (self.y - 0.1)**2
+        
+        mterm = w_track*J_track +  w_avoid*J_avoid
+        lterm = mterm + w_progress*J_progress 
+
+        
 
         # TODO: ensure that delta can be used in the objective function
         # getting the optimal step
@@ -108,7 +132,7 @@ class MPC:
         # lterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
         self.mpc2.set_objective(mterm=mterm, lterm=lterm)
         # penalty for control inputs
-        self.mpc2.set_rterm(v=self.r, phi=self.r)
+        self.mpc2.set_rterm(v= self.r, phi=self.r)
         # HARDCODED circle avoidance constraint
 
         # TODO: set phi bound
