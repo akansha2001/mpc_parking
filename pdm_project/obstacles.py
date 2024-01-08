@@ -64,7 +64,7 @@ def generate_scene():
     wall_length_x = 6.6  # wall length along y -- half length
     wall_height = 1
     wall_thickness = 0.1
-    mid_wall_length = 1.2 * 15
+    mid_wall_length = 1.2*8
     wall_positions = [[wall_length_x, 0.0, wall_height / 2],
                       [0.0, wall_length_y, wall_height / 2],
                       [0.0, -wall_length_y, wall_height / 2],
@@ -78,7 +78,7 @@ def generate_scene():
 
     '''PARKING LIMITS'''
     parking_length_x = 1.8
-    parking_length_y = 1.2
+    parking_length_y = 1.2*2
     parking_height = 0.25
     road_width = 3
 

@@ -67,7 +67,7 @@ class RRT():
         end().setYaw(yaw_goal)
         self.ss.setStartAndGoalStates(start,end, 0.05)
         self.ss.setPlanner(self.planner)
-        self.solved = self.ss.solve(100.0)
+        self.solved = self.ss.solve(200.0)
         if self.solved: 
             self.path=self.ss.getSolutionPath().printAsMatrix()
             self.path = np.fromstring(self.path.strip(), sep=' ')  #The output of printAsMatrix() is a string
