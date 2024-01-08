@@ -30,94 +30,6 @@ class MPC:
         self.L = 0.494
         self.model_type = model_type
 
-    def get_control_input(self, N, x_init, x_target, obstacles):
-
-        # get positions, velocities and radii for obstacles
-        positions = [obstacle.position() for obstacle in obstacles]
-        velocities = [obstacle.velocity() for obstacle in obstacles]
-        radii = [obstacle.radius() for obstacle in obstacles]
-
-        # define model variables
-        x = self.model.set_variable(var_type='_x', var_name='x', shape=(1, 1))
-        y = self.model.set_variable(var_type='_x', var_name='y', shape=(1, 1))
-        yaw = self.model.set_variable(
-            var_type='_x', var_name='yaw', shape=(1, 1))
-        delta = self.model.set_variable(
-            var_type='_x', var_name='delta', shape=(1, 1))
-
-        # define inputs
-        v = self.model.set_variable(var_type='_u', var_name='v')
-        phi = self.model.set_variable(var_type='_u', var_name='phi')
-
-        # model parameters
-        # CHECK VEHICLE PRIUS
-
-        # # define time varying parameters (velocity obstacles)
-        # car_radius = L/2
-        # centers_t = model.set_variable(var_type='_tvp', var_name='centers_t',shape=(len(positions),1))
-        # radii_t = model.set_variable(var_type='_tvp', var_name='centers_t',shape=(len(radii),1))
-
-        # set right hand side equation
-        beta = np.arctan(self.lr*np.tan(delta)/self.L)
-        self.model.set_rhs('x', v*np.cos(yaw + beta))
-        self.model.set_rhs('y', v*np.sin(yaw + beta))
-        self.model.set_rhs('yaw', v*np.tan(delta)*np.cos(beta)/L)
-        self.model.set_rhs('delta', phi)
-
-        # setup model
-        self.model.setup()
-
-        # configure the MPC controller
-        mpc = do_mpc.controller.MPC(self.model)
-
-        # optimizer parameters
-        setup_mpc = {
-            'n_horizon': self.n_horizon,
-            't_step': self.t_step,
-            'n_robust': self.n_robust,
-            'store_full_solution': True,
-        }
-        mpc.set_param(**setup_mpc)
-
-        # objective function
-        mterm = (x_target[0] - x)**2 + \
-            (x_target[1] - y)**2 + (x_target[2] - yaw)**2
-        lterm = (x_target[0] - x)**2 + \
-            (x_target[1] - y)**2 + (x_target[2] - yaw)**2
-
-        # TODO: ensure that delta can be used in the objective function
-        # mterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
-        # lterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
-        mpc.set_objective(mterm=mterm, lterm=lterm)
-
-        # penalty for control inputs
-        mpc.set_rterm(v=self.r, phi=self.r)
-
-        # constraints
-
-        # bounds
-        # SET STATE BOUNDS FOR x,y,yaw,delta: HARDCODED
-        mpc.bounds['lower', '_x', 'delta'] = -np.pi/6
-        mpc.bounds['upper', '_x', 'delta'] = np.pi/6
-        mpc.bounds['lower', '_x', 'yaw'] = -2*np.pi
-        mpc.bounds['upper', '_x', 'yaw'] = 2*np.pi
-        # SET INPUT BOUNDS FOR v,phi: HARDCODED
-        mpc.bounds['lower', '_u', 'v'] = 0.
-        mpc.bounds['upper', '_u', 'v'] = 5.
-        mpc.bounds['lower', '_u', 'phi'] = -1.
-        mpc.bounds['upper', '_u', 'phi'] = 1.
-
-        # inequality constraints for dynamic obstacles
-        # TO DO
-
-        mpc.setup()
-
-        # configure simulator
-        simulator = do_mpc.simulator.Simulator(self.model)
-
-        # params for simulator
-        simulator.set_param(t_step=self.t_step)
-
     def setup_model(self, model_type):
         self.model2 = do_mpc.model.Model(model_type)
         # define model variables
@@ -164,8 +76,8 @@ class MPC:
         # constraints
         # bounds
         # SET STATE BOUNDS FOR x,y,yaw,delta: HARDCODED
-        self.mpc2.bounds['lower', '_x', 'delta'] = -np.pi/6
-        self.mpc2.bounds['upper', '_x', 'delta'] = np.pi/6
+        self.mpc2.bounds['lower', '_x', 'delta'] = -np.pi/4
+        self.mpc2.bounds['upper', '_x', 'delta'] = np.pi/4
         self.mpc2.bounds['lower', '_x', 'yaw'] = -2*np.pi
         self.mpc2.bounds['upper', '_x', 'yaw'] = 2*np.pi
 
@@ -174,17 +86,18 @@ class MPC:
 
         # SET INPUT BOUNDS FOR v,phi: HARDCODED
         self.mpc2.bounds['lower', '_u', 'v'] = 0.
-        self.mpc2.bounds['upper', '_u', 'v'] = 4.
-        self.mpc2.bounds['lower', '_u', 'phi'] = -1.
-        self.mpc2.bounds['upper', '_u', 'phi'] = 1.
+        self.mpc2.bounds['upper', '_u', 'v'] = 1.
+        self.mpc2.bounds['lower', '_u', 'phi'] = -0.4
+        self.mpc2.bounds['upper', '_u', 'phi'] = 0.4
 
     def plan(self, state, x_target, obstacles = None):
         self.setup_model(model_type=self.model_type)
         # objective function
+        dist = np.sqrt((self.x - 5)**2 + (self.y)**2)
         mterm = (x_target[0] - self.x)**2 + \
-            (x_target[1] - self.y)**2 + (x_target[2] - self.yaw)**2
+            (x_target[1] - self.y)**2 + (x_target[2] - self.yaw)**2 + (10/dist)
         lterm = (x_target[0] - self.x)**2 + \
-            (x_target[1] - self.y)**2 + (x_target[2] - self.yaw)**2
+            (x_target[1] - self.y)**2 + (x_target[2] - self.yaw)**2 + (10/dist)
 
         # TODO: ensure that delta can be used in the objective function
         # getting the optimal step
@@ -197,10 +110,12 @@ class MPC:
         # penalty for control inputs
         self.mpc2.set_rterm(v=self.r, phi=self.r)
         # HARDCODED circle avoidance constraint
-        self.mpc2.set_nl_cons("circle", 0.2**2 - (self.x - 5)**2 - (self.y - 0)**2 , 0)
+
         # TODO: set phi bound
-        self.mpc2.set_nl_cons("omega_lb", self.phi - 0.7*self.v/self.R_min, 0)
-        self.mpc2.set_nl_cons("omega_ub", -self.phi - 0.7*self.v/self.R_min, 0)
+        self.mpc2.set_nl_cons("omega_lb", self.phi - 0.7 * self.v/self.R_min, 0)
+        self.mpc2.set_nl_cons("omega_ub", -self.phi - 0.7 * self.v/self.R_min, 0)
+        # self.mpc2.set_nl_cons("circle",     1.0**2 - (self.x - 5)**2 - (self.y - 0)**2, 0)
+        
         # setup mpc
         self.mpc2.setup()
         self.mpc2.set_initial_guess()

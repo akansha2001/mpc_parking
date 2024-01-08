@@ -90,7 +90,6 @@ dynamic_obstacle_dicts = [
      },
     
 ]
-dynamic_obstacles = [generate_dynamic_obstacle(dynamic_obstacle_dict) for dynamic_obstacle_dict in dynamic_obstacle_dicts]
 
 # static obstacles: boxes of varying heights and widths
 
@@ -98,156 +97,17 @@ static_obstacle_dicts = [
     {
         'type': 'box',
         'geometry': {
-            'position' : [2.0, 0.0, 0.1],
+            'position' : [5.0, 0.0, 0.1],
             'width': 0.2,
             'height': 0.2,
             'length': 0.2,
         },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
+        'movable': False
     },
-
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [4.0, -3.0 , 0.2],
-            'width': 0.4,
-            'height': 0.4,
-            'length': 0.4,
-        },
-        'movable': False,
-        'high': {
-            'position' : [7.0, 2.0, 0.2],
-            'width': 0.4,
-            'height': 0.4,
-            'length': 0.4,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.2],
-            'width': 0.4,
-            'height': 0.4,
-            'length': 0.4,
-        }
-    },
-
-    {
-        'type': 'box',
-        'geometry': {
-            'position' : [6.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'movable': False,
-        'high': {
-            'position' : [5.0, 5.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        },
-        'low': {
-            'position' : [0.0, 0.0, 0.1],
-            'width': 0.2,
-            'height': 0.2,
-            'length': 0.2,
-        }
-    }
 ]
 
 static_obstacles = [MyStaticObstacle(name="static_box", content_dict=static_obstacle_dict) for static_obstacle_dict in static_obstacle_dicts]
+wall_obstacles = []
+dynamic_obstacles = [generate_dynamic_obstacle(dynamic_obstacle_dict) for dynamic_obstacle_dict in dynamic_obstacle_dicts]
 
-
-# walls
-
-wall_length = 10
-wall_obstacles_dicts = [
-
-    
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [wall_length/2.0, 0.0, 0.4], 'width': wall_length/3.0, 'height': 0.8, 'length': 0.1
-        },
-        'high': {
-            'position' : [wall_length/2.0, 0.0, 0.4],
-            'width': wall_length/3.0,
-            'height': 0.8,
-            'length': 0.1,
-        },
-        'low': {
-            'position' : [wall_length/2.0, 0.0, 0.4],
-            'width': wall_length/3.0,
-            'height': 0.8,
-            'length': 0.1,
-        },
-    },
-    
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [0.0, wall_length/2.0, 0.4], 'width': 0.1, 'height': 0.8, 'length': wall_length
-        },
-        'high': {
-            'position' : [0.0, wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-        'low': {
-            'position' : [0.0, wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-    },
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [0.0, -wall_length/2.0, 0.4], 'width': 0.1, 'height': 0.8, 'length': wall_length
-        },
-        'high': {
-            'position' : [0.0, -wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-        'low': {
-            'position' : [0.0, -wall_length/2.0, 0.4],
-            'width': 0.1,
-            'height': 0.8,
-            'length': wall_length,
-        },
-    },
-    {
-        'type': 'box', 
-         'geometry': {
-             'position': [-wall_length/2.0, 0.0, 0.4], 'width': wall_length, 'height': 0.8, 'length': 0.1
-        },
-        'high': {
-            'position' : [-wall_length/2.0, 0.0, 0.4],
-            'width': wall_length,
-            'height': 0.8,
-            'length': 0.1,
-        },
-        'low': {
-            'position' : [-wall_length/2.0, 0.0, 0.4],
-            'width': wall_length,
-            'height': 0.8,
-            'length': 0.1,
-        },
-    },
-]
-
-wall_obstacles = [MyStaticObstacle(name=f"wall_{i}", content_dict=obst_dict) for i, obst_dict in enumerate(wall_obstacles_dicts)]
 
