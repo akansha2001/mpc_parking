@@ -10,6 +10,7 @@ import time
 from obstacles import generate_scene
 from helper import FileOp
 from helper import bcolors
+from mpc import MPC
 import datetime
 
 '''
@@ -38,7 +39,7 @@ class Robot:
 
     def set_plan(self, global_plan):
         # TODO: move local planner to the parking lot env
-        self.local_planner = LocalPlanner(Trajectory(global_plan))  # creating a LocalPlanner instance
+        self.local_planner = MPC(Trajectory(global_plan))  # creating a LocalPlanner instance
         self.init_planner = True
 
     def get_target(self):
@@ -52,7 +53,7 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-    GOAL = np.array([0.9015, 1.1231, np.pi])
+    GOAL = np.array([-2.4985, -4.2, np.pi/2])
     def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
