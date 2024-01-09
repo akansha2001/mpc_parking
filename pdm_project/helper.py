@@ -196,3 +196,19 @@ def generate_points(controlPoints,n_points,frac,sigma_x,sigma_y):
         for j in range(len(chosen_points_x)):
             new_control_points.append([chosen_points_x[j],chosen_points_y[j],z])
     return new_control_points
+
+def func_arc(x_initial,b,R):
+    points_path=[]
+    for theta in np.arange(0,np.pi/2,np.pi/30):
+        yaw=np.pi/2+theta
+        x=x_initial[0]-R+R*np.cos(theta)
+        y=x_initial[1]+R*np.sin(theta)
+        points_path.append([x,y,yaw])
+    x_parking_spot=np.zeros(3)
+    x_parking_spot[0]=x_initial[0]-R-b
+    x_parking_spot[1]=x_initial[1]+R
+    x_parking_spot[2]=np.pi
+    points_path.append(x_parking_spot)
+    points_path_array=np.array(points_path)
+    print(points_path_array.shape)
+    return points_path_array

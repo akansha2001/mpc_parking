@@ -46,7 +46,7 @@ def generate_arithmetic_sequence(center, difference, n):
 
 def create_parking_positions(length_x, length_y, height, road_width):
     """Creates parking positions based on length_x, length_y, height, and road_width."""
-    parking_lot_y = generate_arithmetic_sequence(0, length_y, 5)
+    parking_lot_y = generate_arithmetic_sequence(0, length_y, 8)
     parking_lot_x = [-(length_x * 1.5 + road_width), -length_x / 2, length_x / 2, length_x * 1.5 + road_width]
 
     parking_positions = []
@@ -54,7 +54,7 @@ def create_parking_positions(length_x, length_y, height, road_width):
         for j in range(len(parking_lot_y)):
             position = [parking_lot_x[i], parking_lot_y[j], height / 2]
             parking_positions.append(position)
-
+    print(parking_positions)
     return parking_positions
 
 
@@ -64,7 +64,7 @@ def generate_scene():
     wall_length_x = 6.6  # wall length along y -- half length
     wall_height = 1
     wall_thickness = 0.1
-    mid_wall_length = 1.2*8
+    mid_wall_length = 1.2*7
     wall_positions = [[wall_length_x, 0.0, wall_height / 2],
                       [0.0, wall_length_y, wall_height / 2],
                       [0.0, -wall_length_y, wall_height / 2],
@@ -78,7 +78,7 @@ def generate_scene():
 
     '''PARKING LIMITS'''
     parking_length_x = 1.8
-    parking_length_y = 1.2*2
+    parking_length_y = 1.2
     parking_height = 0.25
     road_width = 3
 

@@ -11,7 +11,7 @@ from obstacles import generate_scene
 from helper import FileOp
 from helper import bcolors
 import datetime
-
+from helper import func_arc
 '''
 The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
 '''
@@ -52,7 +52,9 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-    GOAL = np.array([0.9015, 1.1231, np.pi])
+    GOAL = np.array([-0.9985, -2.4, 0])
+    #GOAL = np.array([-2.5515, -8.9231, np.pi/2])
+    
     def __init__(self, render=True, stat_obs_flag = True, dyn_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
@@ -156,7 +158,7 @@ class ParkingLotEnv:
                     setattr(robot.state, key, np.array(value))
             # print(robot.state.forward_velocity)
                 self.file.write(robot.state.position)
-            print(robot.state.position)
+            #print(robot.state.position)
         
 
     def get_action(self):
