@@ -23,6 +23,7 @@ class MPC:
         self.r = r
         self.lr = 0.494/2
         self.L = 0.494
+        self.buffer = 1.0
         self.model_type = model_type
         self.trajectory = trajectory
         self.look_ahead_time = 2.0
@@ -97,11 +98,8 @@ class MPC:
     def plan(self, robot): # CHANGED FUNCTION DEFINITION TOO
 
         state = robot.state
-        # centers_obstacles = robot.extract_obstacles(self.L + 0.5)
+        centers_obstacles = robot.extract_obstacles(self.L + self.buffer)
 
-        # for i,center in enumerate(centers_obstacles):
-        #     self.mpc.set_nl_cons(expr_name="obstacle"+str(i+1),expr=(self.L + 0.5)**2 - (self.x - center[0])**2 - (self.y - center[1])**2,ub=0)
-        
         # extracting necessary state variables
         u = state.get_forward_velocity()
         yaw = state.get_yaw()
@@ -179,6 +177,10 @@ class MPC:
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
         # penalty for control inputs
         self.mpc.set_rterm(v= self.r, phi=self.r)    
+
+        if centers_obstacles is not None:
+            for i,center in enumerate(centers_obstacles):
+                self.mpc.set_nl_cons(expr_name="obstacle"+str(i+1),expr=(self.L + self.buffer)**2 - (self.x - center[0])**2 - (self.y - center[1])**2,ub=0)
         
         # setup mpc
         self.mpc.setup()

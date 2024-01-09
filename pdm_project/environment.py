@@ -56,13 +56,14 @@ class Robot:
         return self.local_planner.plan(self)
 
     def extract_obstacles(self,distance_tolerance, angle_tolerance = np.pi/6):
+        # TODO: tolerances tuning
         if self.obstacles is not None:
-            position_self = self.state.position()
+            position_self = self.state.position
             centers_obstacles = []
             for obstacle in self.obstacles:
-                position_obstacle = obstacle.state.position()
-
-                angle = np.arctan2(position_obstacle[1] - position_self[1], position_obstacle[0] - position_self[0])
+                position_obstacle = obstacle.state.position
+                
+                angle = np.arctan2(position_obstacle[1] - position_self[1],position_obstacle[0] - position_self[0])
                 distance = np.linalg.norm(position_obstacle[:2] - position_self[:2],ord=2)
 
                 if position_self[2] - angle_tolerance <= angle <= position_self[2] + angle_tolerance and distance <= distance_tolerance:
@@ -75,7 +76,7 @@ class ParkingLotEnv:
     #! move hardcoded variables
     GOAL = np.array([-2.4985, -4.2, np.pi/2]) # goal of the robot
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
-    CAR_SPAWN_LOCATIONS = np.array([[-2.5515, 10, 0]])  # car spawn locations
+    CAR_SPAWN_LOCATIONS = np.array([[-2.5515, -6, 0]])  # car spawn locations
     DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
     ROBOT_PATH_LOG_FILE = "data/robot_pos.csv"
@@ -90,43 +91,44 @@ class ParkingLotEnv:
         self.file=FileOp(ParkingLotEnv.ROBOT_PATH_LOG_FILE)
 
         # creating a list of robots (only 1 is needed for now)
+        rob_spawn_pos_list = []
         self.robots = [Robot(spawn_pos=ParkingLotEnv.START)]
         self.robot_models = []
-        rob_spawn_pos_list = []
         # assigning obstacles to class members
         static_obstacles, wall_obstacles = generate_scene()
         if self.stat_obs_flag:
             self.static_obstacles = static_obstacles
             self.wall_obstacles = wall_obstacles
         
-        self.cars = []
+        self.enemies = []
         for i in range(ParkingLotEnv.N_CARS):
-            self.cars.append(Robot(spawn_pos=ParkingLotEnv.CAR_SPAWN_LOCATIONS[i]))
+            self.enemies.append(Robot(spawn_pos=ParkingLotEnv.CAR_SPAWN_LOCATIONS[i]))
 
-        self.dynamic_obstacles = [self.cars[ParkingLotEnv.DYNAMIC_CAR_INDEX]]
+        self.dynamic_obstacles = [self.enemies[ParkingLotEnv.DYNAMIC_CAR_INDEX]]
         
         # iterating over all robots
         for i in range(len(self.robots)):
             # appending the index to match the naming convention as defined in the obs object
             self.robots[i].name += str(i)
+            self.robots[i].obstacles = self.dynamic_obstacles
             # appending the model list, which is later used to create the env
             self.robot_models.append(self.robots[i].model)
             # spawn positions extracted, again used while creating the env
             rob_spawn_pos_list.append(self.robots[i].spawn_pos)
             self.set_global_plan(i)
         
-        for i in range(len(self.cars)):
+        for i in range(len(self.enemies)):
             # appending the index to match the naming convention as defined in the obs object
-            self.cars[i].name += str(i)
+            self.enemies[i].name += "enemy"+str(i)
             # appending the model list, which is later used to create the env
-            self.robot_models.append(self.cars[i].model)
+            self.robot_models.append(self.enemies[i].model)
             # setting the global plan as the spawn position
-            rob_spawn_pos_list.append(self.cars[i].spawn_pos)
-            goal_pos_list = [self.cars[i].spawn_pos]
+            rob_spawn_pos_list.append(self.enemies[i].spawn_pos)
+            goal_pos_list = [self.enemies[i].spawn_pos]
             if i == ParkingLotEnv.DYNAMIC_CAR_INDEX:
-                self.cars[i].set_plan(goal_pos_list, "pure_pursuit")
+                self.enemies[i].set_plan(goal_pos_list, "pure_pursuit")
             else:
-                self.cars[i].set_plan(goal_pos_list, "dummy")
+                self.enemies[i].set_plan(goal_pos_list, "dummy")
         
         self.rob_spawn_pos = np.vstack(rob_spawn_pos_list)
         self.n_robots = len(self.robots)
@@ -190,7 +192,7 @@ class ParkingLotEnv:
                 # dynamically updating robot attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
-        
+
         for dynamic_obstacle in self.dynamic_obstacles:
             if dynamic_obstacle.name in self.ob:
                 dynamic_obstacle_data = self.ob[dynamic_obstacle.name]
@@ -198,6 +200,8 @@ class ParkingLotEnv:
                 # dynamically updating dynamic_obstacle attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(dynamic_obstacle.state, key, np.array(value))
+
+        
 
     def get_action(self):
         """
