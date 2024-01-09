@@ -6,6 +6,7 @@ from global_planner import GlobalPlanner
 from local_planner import *
 from trajectory import State
 from trajectory import Trajectory
+from trajectory import generate_spline
 import time
 from obstacles import generate_scene
 from helper import FileOp
@@ -74,9 +75,10 @@ class ParkingLotEnv:
     Environment class for simulating a parking lot scenario with multiple robots.
     """
     #! move hardcoded variables
-    GOAL = np.array([-2.4985, -4.2, np.pi/2]) # goal of the robot
+    GOAL = np.array([-2.6,2.4, np.pi/2]) # goal of the robot
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
-    CAR_SPAWN_LOCATIONS = np.array([[-2.5515, -6, 0]])  # car spawn locations
+    CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.8,0]
+    ,[-0.9,-1.8,np.pi]])  # car spawn locations
     DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
     ROBOT_PATH_LOG_FILE = "data/robot_pos.csv"
@@ -126,7 +128,10 @@ class ParkingLotEnv:
             rob_spawn_pos_list.append(self.enemies[i].spawn_pos)
             goal_pos_list = [self.enemies[i].spawn_pos]
             if i == ParkingLotEnv.DYNAMIC_CAR_INDEX:
-                self.enemies[i].set_plan(goal_pos_list, "pure_pursuit")
+                points_path=generate_spline(self.enemies[i].spawn_pos,1.4,1.8)
+                final_path=goal_pos_list+points_path                
+                print(len(final_path))
+                self.enemies[i].set_plan(final_path, "pure_pursuit")
             else:
                 self.enemies[i].set_plan(goal_pos_list, "dummy")
         
@@ -193,13 +198,13 @@ class ParkingLotEnv:
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
 
-        for dynamic_obstacle in self.dynamic_obstacles:
-            if dynamic_obstacle.name in self.ob:
-                dynamic_obstacle_data = self.ob[dynamic_obstacle.name]
-                joint_state_data = dynamic_obstacle_data.get('joint_state', {})
-                # dynamically updating dynamic_obstacle attributes based on received joint state data
+        for enemy in self.enemies:
+            if enemy.name in self.ob:
+                enemy_data = self.ob[enemy.name]
+                joint_state_data = enemy_data.get('joint_state', {})
+                # dynamically updating enemy attributes based on received joint state data
                 for key, value in joint_state_data.items():
-                    setattr(dynamic_obstacle.state, key, np.array(value))
+                    setattr(enemy.state, key, np.array(value))
 
         
 
@@ -214,7 +219,7 @@ class ParkingLotEnv:
         for robot in self.robots:
             target = robot.get_target()
             actions.append(target)
-        for car in self.dynamic_obstacles:
+        for car in self.enemies:
             target = car.get_target()
             actions.append(target)
         action = np.array(actions)

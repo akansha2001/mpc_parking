@@ -65,5 +65,21 @@ class Trajectory:
         return se2_matrix
 
 #TODO: MANAN
-def generate_spline(control_points):
-    pass
+def generate_spline(spawn_pos,offset,turning_radius):
+    points_path=[]
+    pos_outside=np.zeros(3)
+    pos_final=np.zeros(3)
+    pos_outside[0]=spawn_pos[0]-offset
+    pos_outside[1]=spawn_pos[1]
+    pos_outside[2]=spawn_pos[2]
+    points_path.append(pos_outside)
+    pos_final[0]=pos_outside[0]-turning_radius
+    pos_final[1]=pos_outside[1]-turning_radius
+    pos_final[2]=np.pi/2
+    position=np.zeros(3)
+    for theta in np.arange(0,np.pi/2,np.pi/30):
+        position[0]=pos_outside[0]-turning_radius*np.sin(theta)
+        position[1]=pos_outside[1]-(turning_radius-turning_radius*np.cos(theta))
+        position[2]=np.pi-theta
+        points_path.append(position)
+    return points_path

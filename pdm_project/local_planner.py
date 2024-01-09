@@ -21,7 +21,7 @@ class PurePursuit(LocalPlanner):
         self.max_vel = max_vel        
         #! HARDCODED
         self.look_ahead_time = 1.0
-        self.speed_factor =  0.05
+        self.speed_factor =  0.15
         self.look_ahead_thresh = 0.1
         self.stop_thresh = 0.1
         self.Kp = 1.0
