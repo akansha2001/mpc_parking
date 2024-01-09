@@ -67,6 +67,7 @@ class Robot:
                 angle = np.arctan2(position_obstacle[1] - position_self[1],position_obstacle[0] - position_self[0])
                 distance = np.linalg.norm(position_obstacle[:2] - position_self[:2],ord=2)
 
+                print(position_self[2] - angle_tolerance <= angle <= position_self[2] + angle_tolerance, distance <= distance_tolerance)
                 if position_self[2] - angle_tolerance <= angle <= position_self[2] + angle_tolerance and distance <= distance_tolerance:
                     centers_obstacles.append(position_obstacle[:2])
             return centers_obstacles
@@ -197,16 +198,22 @@ class ParkingLotEnv:
                 # dynamically updating robot attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
-
-        for enemy in self.enemies:
-            if enemy.name in self.ob:
-                enemy_data = self.ob[enemy.name]
+                robot.obstacles = self.dynamic_obstacles
+        
+        print(self.ob)
+        for i, enemy in enumerate(self.enemies):
+            enemy_name = "robot_"+ str(i + self.n_robots)
+            if enemy_name in self.ob:
+                enemy_data = self.ob[enemy_name]
                 joint_state_data = enemy_data.get('joint_state', {})
+                print(joint_state_data)
                 # dynamically updating enemy attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(enemy.state, key, np.array(value))
+                print(enemy.state.position)
+        self.dynamic_obstacles = [self.enemies[ParkingLotEnv.DYNAMIC_CAR_INDEX]]
+        print(self.dynamic_obstacles[0].state.position)
 
-        
 
     def get_action(self):
         """

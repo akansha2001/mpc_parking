@@ -35,7 +35,10 @@ class PurePursuit(LocalPlanner):
         rear_y = state.get_rear_y()
 
         # finding the look ahead index from the trajectory
-        look_ahead_dist = self.look_ahead_time * u
+        look_ahead_dist = 0.2
+        if u >= 0.5:
+            look_ahead_dist = u * self.look_ahead_time
+        
         # finding the closest index on the trajectory
         dx = self.trajectory.cx - rear_x
         dy = self.trajectory.cy - rear_y

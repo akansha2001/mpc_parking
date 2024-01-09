@@ -13,7 +13,7 @@ class MPC:
                  n_robust=1,
                  r=1e-5,
                  model_type='continuous',
-                 max_vel=4.0,
+                 max_vel=2.5,
                  max_phi = 0.4):  # TODO: check discrete too
 
         self.model = do_mpc.model.Model(model_type)
@@ -23,7 +23,7 @@ class MPC:
         self.r = r
         self.lr = 0.494/2
         self.L = 0.494
-        self.buffer = 1.0
+        self.buffer = 1.5
         self.model_type = model_type
         self.trajectory = trajectory
         self.look_ahead_time = 2.0
@@ -95,7 +95,7 @@ class MPC:
         self.mpc.bounds['upper', '_u', 'phi'] = self.max_phi
 
 
-    def plan(self, robot): # CHANGED FUNCTION DEFINITION TOO
+    def plan(self, robot):
 
         state = robot.state
         centers_obstacles = robot.extract_obstacles(self.L + self.buffer)
@@ -156,7 +156,7 @@ class MPC:
         w_avoid = 0.0 # try 16
 
         # HARDCODED
-        v_ref = 4.0
+        v_ref = self.max_vel
         # costs
         # TODO: saturate
         J_track = self.K_pos*((x_target[0] - self.x)**2 + (x_target[1] - self.y)**2) + \

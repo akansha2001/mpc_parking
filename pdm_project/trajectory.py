@@ -64,7 +64,6 @@ class Trajectory:
                               [0, 0, 1]])
         return se2_matrix
 
-#TODO: MANAN
 def generate_spline(spawn_pos,offset,turning_radius):
     points_path=[]
     pos_outside=np.zeros(3)
