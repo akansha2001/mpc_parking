@@ -19,7 +19,7 @@ class RRT():
     def __init__(self,staticObstacles=None, wallObstacles=None):
         
         # Public attributes
-        self.space = ob.DubinsStateSpace(2.4, False)
+        self.space = ob.DubinsStateSpace(2.5, False)
         
         #self.space = ob.SE2StateSpace()
         # set the bounds for the R^2 part of SE(2)
