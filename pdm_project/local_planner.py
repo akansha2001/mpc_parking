@@ -1,8 +1,21 @@
 import numpy as np
+from abc import ABC, abstractmethod
 from trajectory import Trajectory
 
-# TODO: chang local planner to pure pursuit using inheritance
-class LocalPlanner:
+class LocalPlanner(ABC):
+    @abstractmethod
+    def plan(self, robot):
+        pass
+
+class DummyLocalPlanner(LocalPlanner):
+    def __init__(self):
+        super().__init__()
+
+    def plan(self, robot):
+        # returns zero velocities
+        cmd = np.array([0.0, 0.0])
+        return cmd
+class PurePursuit(LocalPlanner):
     def __init__(self, trajectory: Trajectory, max_vel = 5):
         self.trajectory = trajectory 
         self.max_vel = max_vel        
@@ -13,7 +26,8 @@ class LocalPlanner:
         self.stop_thresh = 0.1
         self.Kp = 1.0
 
-    def plan(self, state):
+    def plan(self, robot):
+        state = robot.state
         # extracting necessary state variables
         u = state.get_forward_velocity()
         yaw = state.get_yaw()
@@ -77,3 +91,4 @@ class LocalPlanner:
         cmd = np.array([cmd_vel, cmd_omega])
         return cmd
         # return np.array([cmd_vel, 0.1])
+

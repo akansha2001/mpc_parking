@@ -87,12 +87,11 @@ def generate_scene():
     parking_lengths = [parking_length_x] * len(parking_positions)
     static_obstacles = create_obstacle_objects(parking_positions, parking_widths, parking_height, parking_lengths)
 
-    dynamic_obstacles = []
+    # dynamic_obstacles = []
     wall_obstacles = create_obstacle_objects(wall_positions, wall_widths, wall_height, wall_lengths)
 
-    return static_obstacles, dynamic_obstacles, wall_obstacles
+    return static_obstacles, wall_obstacles
 
 
-static_obstacles, dynamic_obstacles, wall_obstacles = generate_scene()
 
 

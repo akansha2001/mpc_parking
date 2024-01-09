@@ -48,10 +48,8 @@ class Trajectory:
             # if shapes are fine, extract coordinates
             self.cx = points[:, 0]  # x
             self.cy = points[:, 1]  # y
-            if points.shape[0] == 3:
+            if points.shape[1] == 3:
                 self.ct = points[:, 2]  # theta
-            else:
-                self.theta = np.zeros(points.shape[0])
         else:
             raise ValueError(
                 "Invalid shape for position array. It should be either (n, 2) or (n, 3).")
@@ -65,3 +63,7 @@ class Trajectory:
                               [sin_theta, cos_theta, y],
                               [0, 0, 1]])
         return se2_matrix
+
+#TODO: MANAN
+def generate_spline(control_points):
+    pass

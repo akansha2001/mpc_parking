@@ -28,22 +28,25 @@ class MPC:
         self.look_ahead_time = 2.0
         self.max_vel = max_vel
         self.max_phi = max_phi
+        self.counter = 1
+        self.K_pos = 1
+
 
     def setup_model(self, model_type):
-        self.model2 = do_mpc.model.Model(model_type)
+        self.model = do_mpc.model.Model(model_type)
         # define model variables
-        self.x = self.model2.set_variable(
+        self.x = self.model.set_variable(
             var_type='_x', var_name='x', shape=(1, 1))
-        self.y = self.model2.set_variable(
+        self.y = self.model.set_variable(
             var_type='_x', var_name='y', shape=(1, 1))
-        self.yaw = self.model2.set_variable(
+        self.yaw = self.model.set_variable(
             var_type='_x', var_name='yaw', shape=(1, 1))
-        self.delta = self.model2.set_variable(
+        self.delta = self.model.set_variable(
             var_type='_x', var_name='delta', shape=(1, 1))
         
         # define inputs
-        self.v = self.model2.set_variable(var_type='_u', var_name='v')
-        self.phi = self.model2.set_variable(var_type='_u', var_name='phi')
+        self.v = self.model.set_variable(var_type='_u', var_name='v')
+        self.phi = self.model.set_variable(var_type='_u', var_name='phi')
 
         # # define time varying parameters (velocity obstacles)
         # car_radius = L/2
@@ -52,16 +55,17 @@ class MPC:
         # set right hand side equation
 
         self.beta = np.arctan(self.lr*np.tan(self.delta)/self.L)
-        self.model2.set_rhs('x', self.v*np.cos(self.yaw + self.beta))
-        self.model2.set_rhs('y', self.v*np.sin(self.yaw + self.beta))
-        self.model2.set_rhs('yaw', self.v*np.tan(self.delta)*np.cos(self.beta)/self.L)
-        self.model2.set_rhs('delta', self.phi)
+        self.model.set_rhs('x', self.v*np.cos(self.yaw + self.beta))
+        self.model.set_rhs('y', self.v*np.sin(self.yaw + self.beta))
+        self.model.set_rhs('yaw', self.v*np.tan(self.delta)*np.cos(self.beta)/self.L)
+        self.model.set_rhs('delta', self.phi)
 
          # setup model
-        self.model2.setup()
+        self.model.setup()
 
         # configure the MPC controller
-        self.mpc2 = do_mpc.controller.MPC(self.model2)
+        self.mpc = do_mpc.controller.MPC(model=self.model)
+        self.mpc.settings.supress_ipopt_output()
         # optimizer parameters
         setup_mpc = {
             'n_horizon': self.n_horizon,
@@ -70,26 +74,34 @@ class MPC:
             'store_full_solution': True,
         }
 
-        self.mpc2.set_param(**setup_mpc)
+        self.mpc.set_param(**setup_mpc)
 
         # constraints
         # bounds
         # SET STATE BOUNDS FOR x,y,yaw,delta: HARDCODED
-        self.mpc2.bounds['lower', '_x', 'delta'] = -np.pi/4
-        self.mpc2.bounds['upper', '_x', 'delta'] = np.pi/4
-        self.mpc2.bounds['lower', '_x', 'yaw'] = -2*np.pi
-        self.mpc2.bounds['upper', '_x', 'yaw'] = 2*np.pi
+        self.mpc.bounds['lower', '_x', 'delta'] = -np.pi/4
+        self.mpc.bounds['upper', '_x', 'delta'] = np.pi/4
+        self.mpc.bounds['lower', '_x', 'yaw'] = -2*np.pi
+        self.mpc.bounds['upper', '_x', 'yaw'] = 2*np.pi
 
         # SET MIN R
         self.R_min = self.L/np.tan(np.pi/6) 
 
         # SET INPUT BOUNDS FOR v,phi: HARDCODED
-        self.mpc2.bounds['lower', '_u', 'v'] = 0.
-        self.mpc2.bounds['upper', '_u', 'v'] = self.max_vel
-        self.mpc2.bounds['lower', '_u', 'phi'] = -self.max_phi
-        self.mpc2.bounds['upper', '_u', 'phi'] = self.max_phi
+        self.mpc.bounds['lower', '_u', 'v'] = 0.
+        self.mpc.bounds['upper', '_u', 'v'] = self.max_vel
+        self.mpc.bounds['lower', '_u', 'phi'] = -self.max_phi
+        self.mpc.bounds['upper', '_u', 'phi'] = self.max_phi
 
-    def plan(self, state, obstacles=None):
+
+    def plan(self, robot): # CHANGED FUNCTION DEFINITION TOO
+
+        state = robot.state
+        # centers_obstacles = robot.extract_obstacles(self.L + 0.5)
+
+        # for i,center in enumerate(centers_obstacles):
+        #     self.mpc.set_nl_cons(expr_name="obstacle"+str(i+1),expr=(self.L + 0.5)**2 - (self.x - center[0])**2 - (self.y - center[1])**2,ub=0)
+        
         # extracting necessary state variables
         u = state.get_forward_velocity()
         yaw = state.get_yaw()
@@ -97,7 +109,12 @@ class MPC:
         rear_y = state.get_rear_y()
 
         # finding the look ahead index from the trajectory
-        look_ahead_dist = self.look_ahead_time * u
+        if u < 0.5:
+            look_ahead_dist = 1.0
+        else:
+            look_ahead_dist = u * self.look_ahead_time
+        # print(look_ahead_dist)
+        
         # finding the closest index on the trajectory
         dx = self.trajectory.cx - rear_x
         dy = self.trajectory.cy - rear_y
@@ -132,45 +149,46 @@ class MPC:
         # define weights for costs
         # HARDCODED
         # TODO: tune
-        K_pos = 3.0
+
         K_yaw = 1.0
-        K_delta = 1.0
+        K_delta = 0.0
 
         w_track = 1.0
-        w_progress = 4.0
-        w_avoid = 16.0
+        w_progress = 0.0
+        w_avoid = 0.0 # try 16
 
         # HARDCODED
         v_ref = 4.0
         # costs
         # TODO: saturate
-        J_track = K_pos*((x_target[0] - self.x)**2 + (x_target[1] - self.y)**2) + \
+        J_track = self.K_pos*((x_target[0] - self.x)**2 + (x_target[1] - self.y)**2) + \
                  K_yaw*(x_target[2] - self.yaw)**2 + K_delta*(delta_ref - self.delta)
         J_progress = (self.v- v_ref)**2
-        J_avoid = 1.0**2 - (self.x - 5)**2 - (self.y - 0.1)**2
-        
-        mterm = w_track*J_track +  w_avoid*J_avoid
+        # J_avoid = 1.0**2 - (self.x - 5)**2 - (self.y - 0.1)**2
+        J_avoid = 0.0
+        mterm = w_track*J_track +  w_avoid * J_avoid
         lterm = mterm + w_progress*J_progress 
 
         # TODO: ensure that delta can be used in the objective function
         # getting the optimal step
         x0 = np.append(state.position, state.steering)
-        self.mpc2.x0 = x0
+        self.mpc.x0 = x0
         
         # mterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
         # lterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
-        self.mpc2.set_objective(mterm=mterm, lterm=lterm)
+        self.mpc.set_objective(mterm=mterm, lterm=lterm)
         # penalty for control inputs
-        self.mpc2.set_rterm(v= self.r, phi=self.r)    
+        self.mpc.set_rterm(v= self.r, phi=self.r)    
         
         # setup mpc
-        self.mpc2.setup()
-        self.mpc2.set_initial_guess()
+        self.mpc.setup()
+        self.mpc.set_initial_guess()
         # configure simulator
-        simulator = do_mpc.simulator.Simulator(self.model2)
+        simulator = do_mpc.simulator.Simulator(self.model)
         # params for simulator
         simulator.set_param(t_step=self.t_step)
         
-        u0 = self.mpc2.make_step(x0) 
-        print("\n\n\n\n", u0)
-        return u0 
+        u0 = self.mpc.make_step(x0) 
+        u0 = u0.ravel()
+        print("\n\ncmd: ", u0)
+        return u0
