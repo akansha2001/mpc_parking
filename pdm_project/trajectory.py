@@ -64,7 +64,7 @@ class Trajectory:
                               [0, 0, 1]])
         return se2_matrix
 
-def generate_spline(spawn_pos,offset,turning_radius):
+def generate_spline(spawn_pos, offset=1.2, turning_radius=1.8):
     points_path=[]
     position=np.zeros(3)
     for theta in np.arange(0,np.pi/2,np.pi/30):

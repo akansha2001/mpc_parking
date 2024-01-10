@@ -26,7 +26,7 @@ class Robot:
         if model.lower() != "prius":
             raise Exception("Invalid model. Only 'prius' model is supported.")
 
-        print(f"\n\n#############\nRobot {self.name} spawning at ({spawn_pos[0]}, {spawn_pos[1]})")
+        print(f"\nRobot {self.name} spawning at ({spawn_pos[0]}, {spawn_pos[1]})")
         # creating a Prius model instance with "vel" mode
         self.model = Prius(mode="vel")
         self.wheel_base = self.model._wheel_distance
@@ -129,7 +129,7 @@ class ParkingLotEnv:
             rob_spawn_pos_list.append(self.enemies[i].spawn_pos)
             goal_pos_list = [self.enemies[i].spawn_pos]
             if i == ParkingLotEnv.DYNAMIC_CAR_INDEX:
-                points_path=generate_spline(self.enemies[i].spawn_pos,1.2,1.8)
+                points_path=generate_spline(self.enemies[i].spawn_pos)
                 final_path=goal_pos_list+points_path                
                 self.enemies[i].set_plan(final_path, "pure_pursuit")
             else:
@@ -143,8 +143,6 @@ class ParkingLotEnv:
         planner = GlobalPlanner(planner_type="rrt", static_obstacles=self.static_obstacles, wall_obstacles=self.wall_obstacles)
         start = datetime.datetime.now()
         global_plan = planner.plan(self.robots[idx].state.position, ParkingLotEnv.GOAL)
-        #! uncomment to not use rrt
-        # global_plan = [ParkingLotEnv.GOAL]
         end = datetime.datetime.now()
         delta = end - start
         print(bcolors.OKGREEN + "\n\nexecution time:", delta.total_seconds(), "s" + bcolors.ENDC)
@@ -182,7 +180,6 @@ class ParkingLotEnv:
         # resetting the environment with the specified initial positions
         self.ob = self.env.reset(pos=self.rob_spawn_pos)
         # printing the initial observation
-        print(f"Initial observation : {self.ob}")
 
     # updating the state of the robot entities
     def update_robot_state(self):
@@ -199,19 +196,16 @@ class ParkingLotEnv:
                     setattr(robot.state, key, np.array(value))
                 robot.obstacles = self.dynamic_obstacles
         
-        print(self.ob)
         for i, enemy in enumerate(self.enemies):
             enemy_name = "robot_"+ str(i + self.n_robots)
             if enemy_name in self.ob:
                 enemy_data = self.ob[enemy_name]
                 joint_state_data = enemy_data.get('joint_state', {})
-                print(joint_state_data)
                 # dynamically updating enemy attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(enemy.state, key, np.array(value))
-                print(enemy.state.position)
+
         self.dynamic_obstacles = [self.enemies[ParkingLotEnv.DYNAMIC_CAR_INDEX]]
-        print(self.dynamic_obstacles[0].state.position)
 
 
     def get_action(self):
