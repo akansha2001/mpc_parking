@@ -79,7 +79,7 @@ class ParkingLotEnv:
     GOAL = np.array([-2.6,2.4, np.pi/2]) # goal of the robot
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
     CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.8,0]
-    ,[-0.9,-1.8,np.pi]])  # car spawn locations
+    ,[-3.9,-3.6,np.pi/2]])  # car spawn locations
     DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
     ROBOT_PATH_LOG_FILE = "data/robot_pos.csv"
@@ -129,9 +129,8 @@ class ParkingLotEnv:
             rob_spawn_pos_list.append(self.enemies[i].spawn_pos)
             goal_pos_list = [self.enemies[i].spawn_pos]
             if i == ParkingLotEnv.DYNAMIC_CAR_INDEX:
-                points_path=generate_spline(self.enemies[i].spawn_pos,1.4,1.8)
+                points_path=generate_spline(self.enemies[i].spawn_pos,1.2,1.8)
                 final_path=goal_pos_list+points_path                
-                print(len(final_path))
                 self.enemies[i].set_plan(final_path, "pure_pursuit")
             else:
                 self.enemies[i].set_plan(goal_pos_list, "dummy")

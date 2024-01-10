@@ -21,7 +21,7 @@ class PurePursuit(LocalPlanner):
         self.max_vel = max_vel        
         #! HARDCODED
         self.look_ahead_time = 1.0
-        self.speed_factor =  0.15
+        self.speed_factor =  0.35
         self.look_ahead_thresh = 0.1
         self.stop_thresh = 0.1
         self.Kp = 1.0
@@ -35,7 +35,7 @@ class PurePursuit(LocalPlanner):
         rear_y = state.get_rear_y()
 
         # finding the look ahead index from the trajectory
-        look_ahead_dist = 0.2
+        look_ahead_dist = 1.0
         if u >= 0.5:
             look_ahead_dist = u * self.look_ahead_time
         
