@@ -13,6 +13,7 @@ import numpy as np
 from functools import partial
 from math import sin, cos
 from shapely import Polygon
+from trajectory import generate_spline
 class RRT():
 
     def __init__(self,staticObstacles=None, wallObstacles=None):
@@ -76,11 +77,12 @@ class RRT():
             self.states_final=self.data_array[:,0:3]
             #self.controls=self.data_array[:,3:5]
             #print(self.controls)
-            
+            park_path=generate_spline(self.states_final[-1],1.0,2.0,"counter_clockwise")
+            trajectory_points=np.concatenate((self.states_final,np.array(park_path)))
             with open(self.output_file, 'w') as file:
-                np.savetxt(file, self.states_final, fmt='%.6f', delimiter=', ')
+                np.savetxt(file, trajectory_points, fmt='%.6f', delimiter=', ')
             print(f"Path saved to {self.output_file}")
-            return self.states_final
+            return trajectory_points
         else:
             print("No solution found")
 

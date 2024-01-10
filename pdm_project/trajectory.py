@@ -66,17 +66,20 @@ class Trajectory:
                               [0, 0, 1]])
         return se2_matrix
 
-def generate_spline(spawn_pos, offset=1.0, turning_radius=1.8):
+def generate_spline(spawn_pos, offset=1.0, turning_radius=1.8,turn_orientation="clockwise"):
+    flag=1
+    if turn_orientation=="counter_clockwise":
+        flag=-1
     points_path=[]
     thetas=np.arange(0,np.pi/2+np.pi/30,np.pi/30)
     for theta in thetas:
         position=np.zeros(3)
-        position[0]=spawn_pos[0]+(turning_radius-turning_radius*np.cos(theta))
+        position[0]=spawn_pos[0]+flag*(turning_radius-turning_radius*np.cos(theta))
         position[1]=spawn_pos[1]+turning_radius*np.sin(theta)
-        position[2]=np.pi/2-theta
+        position[2]=np.pi/2-theta*flag
         points_path.append(position)
     position=np.zeros(3)
-    position[0]=spawn_pos[0]+offset+turning_radius
+    position[0]=spawn_pos[0]+(offset+turning_radius)*flag
     position[1]=spawn_pos[1]+turning_radius
     position[2]=0
     points_path.append(position)

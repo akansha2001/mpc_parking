@@ -77,14 +77,14 @@ class ParkingLotEnv:
     """
     #! move hardcoded variables
     #GOAL = np.array([-2.6,2.4, np.pi/2]) # goal of the robot
-    GOAL = np.array([-2.5515, -8.9231, np.pi/2])
+    GOAL = np.array([-2.3, 0.4, np.pi/2])
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
-    CAR_SPAWN_LOCATIONS = np.array([[-0.9,0,0]
+    CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.2,0],[-5.0,0.0,np.pi],[-5.0,-3.6,np.pi],[-0.9,0,0]
     ,[-3.9,-3.6,np.pi/2]])  # car spawn locations
     DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
-    ROBOT_PATH_LOG_FILE = "data/robot_pos.csv"
-
+    DYNAMIC_CAR_PATH_LOG_FILE = "data/dynamic_car_pos.csv"
+    ROBOT_PATH_LOG_FILE="data/robot_pos.csv"
     def __init__(self, render=True, stat_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
@@ -92,8 +92,8 @@ class ParkingLotEnv:
         self.render = render   # flag to set rendering (make this false to disable the new window)
         self.stat_obs_flag = stat_obs_flag
         #Creating an object of file op to store the robot positions
-        self.file=FileOp(ParkingLotEnv.ROBOT_PATH_LOG_FILE)
-
+        self.file_dynamic_car=FileOp(ParkingLotEnv.DYNAMIC_CAR_PATH_LOG_FILE)
+        self.file_robot=FileOp(ParkingLotEnv.ROBOT_PATH_LOG_FILE)
         # creating a list of robots (only 1 is needed for now)
         rob_spawn_pos_list = []
         self.robots = [Robot(spawn_pos=ParkingLotEnv.START)]
@@ -196,6 +196,7 @@ class ParkingLotEnv:
             if robot.name in self.ob:
                 robot_data = self.ob[robot.name]
                 joint_state_data = robot_data.get('joint_state', {})
+                self.file_robot.write(robot.state.position)
                 # dynamically updating robot attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
@@ -207,7 +208,7 @@ class ParkingLotEnv:
                 enemy_data = self.ob[enemy_name]
                 joint_state_data = enemy_data.get('joint_state', {})
                 if i==ParkingLotEnv.DYNAMIC_CAR_INDEX:
-                    self.file.write(self.enemies[i].state.position)
+                    self.file_dynamic_car.write(self.enemies[i].state.position)
                 # dynamically updating enemy attributes based on received joint state data
                 for key, value in joint_state_data.items():
                     setattr(enemy.state, key, np.array(value))
