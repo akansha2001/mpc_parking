@@ -22,10 +22,10 @@ class PurePursuit(LocalPlanner):
         self.max_vel = max_vel        
         #! HARDCODED
         self.look_ahead_time = 1.0
-        self.speed_factor =  0.35
+        self.speed_factor =  0.15
         self.look_ahead_thresh = 0.1
         self.stop_thresh = 0.1
-        self.Kp = 2.0
+        self.Kp = 100
 
     def plan(self, robot):
         state = robot.state
@@ -36,9 +36,9 @@ class PurePursuit(LocalPlanner):
         rear_y = state.get_rear_y()
 
         # finding the look ahead index from the trajectory
-        look_ahead_dist = 1.0
-        if u >= 0.5:
-            look_ahead_dist = u * self.look_ahead_time
+        # look_ahead_dist = 1.0
+        # if u >= 0.5:
+        look_ahead_dist = u * self.look_ahead_time
         
         # finding the closest index on the trajectory
         dx = self.trajectory.cx - rear_x
@@ -77,9 +77,13 @@ class PurePursuit(LocalPlanner):
             delta = np.arctan2(2.0 * state.L * np.sin(alpha) / look_ahead_dist, 1.0)
         else:
             #print("warning: small lookahead distance!")
-            delta = state.steering  # basically no steering input needed
-    
+            delta = state.steering  # no steering input needed
+        
+        # delta = np.arctan2(2.0 * state.L * np.sin(alpha), look_ahead_dist)
+        
         cmd_omega =  self.Kp * float(delta - state.steering[0])
+        print(delta, state.steering[0])
+        print(cmd_omega)
         # cmd_omega = 2 * np.sin(alpha)/self.look_ahead_time
         goal_dist = state.get_distance(self.trajectory.cx[-1], self.trajectory.cy[-1])
         

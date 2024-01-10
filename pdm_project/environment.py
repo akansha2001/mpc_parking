@@ -80,7 +80,7 @@ class ParkingLotEnv:
     GOAL = np.array([-2.5515, -8.9231, np.pi/2])
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
     CAR_SPAWN_LOCATIONS = np.array([[-0.9,0,0]
-    ,[-3.9,-3,np.pi/2]])  # car spawn locations
+    ,[-3.9,-3.6,np.pi/2]])  # car spawn locations
     DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
     ROBOT_PATH_LOG_FILE = "data/robot_pos.csv"
@@ -130,7 +130,7 @@ class ParkingLotEnv:
             rob_spawn_pos_list.append(self.enemies[i].spawn_pos)
             goal_pos_list = [self.enemies[i].spawn_pos]
             if i == ParkingLotEnv.DYNAMIC_CAR_INDEX:
-                points_path=generate_spline(self.enemies[i].spawn_pos)
+                points_path=generate_spline(self.enemies[i].spawn_pos, offset = 0.5, turning_radius = 2.4)
                 final_path=goal_pos_list+points_path
                 #Storing final_path into csv file
                 
