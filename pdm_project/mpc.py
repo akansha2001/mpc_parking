@@ -13,8 +13,8 @@ class MPC:
                  n_robust=1,
                  r=1e-5,
                  model_type='continuous',
-                 max_vel=2.5,
-                 max_phi = 0.4):  # TODO: check discrete too
+                 max_vel= 2.5,
+                 max_phi = 0.8):  # TODO: check discrete too
 
         self.model = do_mpc.model.Model(model_type)
         self.n_horizon = n_horizon
@@ -26,11 +26,11 @@ class MPC:
         self.buffer = 1.5
         self.model_type = model_type
         self.trajectory = trajectory
-        self.look_ahead_time = 2.0
+        self.look_ahead_time = 1.0
         self.max_vel = max_vel
         self.max_phi = max_phi
         self.counter = 1
-        self.K_pos = 1
+        self.K_pos = 0.7
 
 
     def setup_model(self, model_type):
@@ -80,8 +80,8 @@ class MPC:
         # constraints
         # bounds
         # SET STATE BOUNDS FOR x,y,yaw,delta: HARDCODED
-        self.mpc.bounds['lower', '_x', 'delta'] = -np.pi/4
-        self.mpc.bounds['upper', '_x', 'delta'] = np.pi/4
+        self.mpc.bounds['lower', '_x', 'delta'] = -np.pi/3
+        self.mpc.bounds['upper', '_x', 'delta'] = np.pi/3
         self.mpc.bounds['lower', '_x', 'yaw'] = -2*np.pi
         self.mpc.bounds['upper', '_x', 'yaw'] = 2*np.pi
 
@@ -108,7 +108,7 @@ class MPC:
 
         # finding the look ahead index from the trajectory
         if u < 0.5:
-            look_ahead_dist = 1.0
+            look_ahead_dist = 0.5
         else:
             look_ahead_dist = u * self.look_ahead_time
         # print(look_ahead_dist)
@@ -149,8 +149,7 @@ class MPC:
         # TODO: tune
 
         K_yaw = 1.0
-        K_delta = 0.0
-
+        K_delta = 1.0
         w_track = 1.0
         w_progress = 0.0
         w_avoid = 0.0 # try 16

@@ -79,7 +79,7 @@ class ParkingLotEnv:
     #GOAL = np.array([-2.6,2.4, np.pi/2]) # goal of the robot
     GOAL = np.array([-2.3, -5.6, np.pi/2])
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
-    CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.2,0],[-5.0,0.0,np.pi],[-5.0,-3.6,np.pi],[-0.9,0,0]
+    CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.2,0],[-5.0,0.0,np.pi],[-5.0,-2.4,np.pi],[-0.9,0,0]
     ,[-3.9,-3.6,np.pi/2]])  # car spawn locations
     DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
