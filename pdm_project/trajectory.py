@@ -81,7 +81,7 @@ def generate_spline(spawn_pos, offset=1.0, turning_radius=1.8,turn_orientation="
     position=np.zeros(3)
     position[0]=spawn_pos[0]+(offset+turning_radius)*flag
     position[1]=spawn_pos[1]+turning_radius
-    position[2]=0
+    position[2]=np.pi/2 -flag*np.pi/2
     points_path.append(position)
     #print(turning_radius)
     return points_path

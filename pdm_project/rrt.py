@@ -77,7 +77,7 @@ class RRT():
             self.states_final=self.data_array[:,0:3]
             #self.controls=self.data_array[:,3:5]
             #print(self.controls)
-            park_path=generate_spline(self.states_final[-1],1.0,2.0,"counter_clockwise")
+            park_path=generate_spline(self.states_final[-1],1.2,2.0,"counter_clockwise")
             trajectory_points=np.concatenate((self.states_final,np.array(park_path)))
             with open(self.output_file, 'w') as file:
                 np.savetxt(file, trajectory_points, fmt='%.6f', delimiter=', ')
