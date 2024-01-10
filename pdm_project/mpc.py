@@ -171,6 +171,9 @@ class MPC:
         # getting the optimal step
         x0 = np.append(state.position, state.steering)
         self.mpc.x0 = x0
+
+        print("Position self:",x0)
+        print("Position target:",x_target)
         
         # mterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
         # lterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
