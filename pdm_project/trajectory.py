@@ -1,5 +1,5 @@
 import numpy as np
-
+from helper import FileOp
 class State:
     def __init__(self, position=np.zeros(3), forward_velocity=np.zeros(2),
                  velocity=np.zeros(3), steering=np.zeros(1), L = 0):
@@ -39,6 +39,7 @@ class Trajectory:
         # converting to an np array
         try:
             points = np.array(points)
+            print("Trajectory input:",points)
         except (TypeError, ValueError) as e:
             raise ValueError(f"error converting input to an np array: {e}")
 
@@ -53,6 +54,7 @@ class Trajectory:
         else:
             raise ValueError(
                 "Invalid shape for position array. It should be either (n, 2) or (n, 3).")
+        
 
     @staticmethod
     def toSE2(x, y, theta):
@@ -64,16 +66,19 @@ class Trajectory:
                               [0, 0, 1]])
         return se2_matrix
 
-def generate_spline(spawn_pos, offset=1.2, turning_radius=1.8):
+def generate_spline(spawn_pos, offset=1.0, turning_radius=1.8):
     points_path=[]
-    position=np.zeros(3)
-    for theta in np.arange(0,np.pi/2,np.pi/30):
+    thetas=np.arange(0,np.pi/2+np.pi/30,np.pi/30)
+    for theta in thetas:
+        position=np.zeros(3)
         position[0]=spawn_pos[0]+(turning_radius-turning_radius*np.cos(theta))
         position[1]=spawn_pos[1]+turning_radius*np.sin(theta)
         position[2]=np.pi/2-theta
         points_path.append(position)
+    position=np.zeros(3)
     position[0]=spawn_pos[0]+offset+turning_radius
     position[1]=spawn_pos[1]+turning_radius
     position[2]=0
     points_path.append(position)
+    #print(turning_radius)
     return points_path

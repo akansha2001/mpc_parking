@@ -17,14 +17,15 @@ class DummyLocalPlanner(LocalPlanner):
         return cmd
 class PurePursuit(LocalPlanner):
     def __init__(self, trajectory: Trajectory, max_vel = 5):
-        self.trajectory = trajectory 
+        self.trajectory = trajectory
+        #print("Pure pursuit input trajectory",trajectory) 
         self.max_vel = max_vel        
         #! HARDCODED
         self.look_ahead_time = 1.0
         self.speed_factor =  0.35
         self.look_ahead_thresh = 0.1
         self.stop_thresh = 0.1
-        self.Kp = 1.0
+        self.Kp = 2.0
 
     def plan(self, robot):
         state = robot.state
