@@ -56,7 +56,7 @@ class Robot:
         # currently getting the target from the local planner based on the current position
         return self.local_planner.plan(self)
 
-    def extract_obstacles(self,distance_tolerance, angle_tolerance = 0.6):
+    def extract_obstacles(self,distance_tolerance, angle_tolerance = 0.65):
         # TODO: tolerances tuning
         if self.obstacles is not None:
             position_self = self.state.position
@@ -77,7 +77,7 @@ class ParkingLotEnv:
     """
     #! move hardcoded variables
     #GOAL = np.array([-2.6,2.4, np.pi/2]) # goal of the robot
-    GOAL = np.array([-2.3, -5.6, np.pi/2])
+    GOAL = np.array([-2.3, -0.8, np.pi/2])
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
     CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.2,0],[-5.0,0.0,np.pi],[-5.0,-2.4,np.pi],[-0.9,0,0]
     ,[-3.9,-3.6,np.pi/2]])  # car spawn locations
