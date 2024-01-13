@@ -85,6 +85,7 @@ class ParkingLotEnv:
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
     DYNAMIC_CAR_PATH_LOG_FILE = "data/dynamic_car_pos.csv"
     ROBOT_PATH_LOG_FILE="data/robot_pos.csv"
+    TIME_LOG_FILE="data/time_exec.csv"
     def __init__(self, render=True, stat_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 
@@ -94,6 +95,7 @@ class ParkingLotEnv:
         #Creating an object of file op to store the robot positions
         self.file_dynamic_car=FileOp(ParkingLotEnv.DYNAMIC_CAR_PATH_LOG_FILE)
         self.file_robot=FileOp(ParkingLotEnv.ROBOT_PATH_LOG_FILE)
+        self.file_time=FileOp(ParkingLotEnv.TIME_LOG_FILE)
         # creating a list of robots (only 1 is needed for now)
         rob_spawn_pos_list = []
         self.robots = [Robot(spawn_pos=ParkingLotEnv.START)]
@@ -152,7 +154,7 @@ class ParkingLotEnv:
         delta = end - start
         print(bcolors.OKGREEN + "\n\nexecution time:", delta.total_seconds(), "s" + bcolors.ENDC)
         self.robots[idx].set_plan(global_plan, "mpc")
-    
+        self.file_time.write(delta.total_seconds())
     def setup_env(self):
         """
         - sets up the environment for simulation

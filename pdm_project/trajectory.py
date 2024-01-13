@@ -85,3 +85,25 @@ def generate_spline(spawn_pos, offset=1.0, turning_radius=1.8,turn_orientation="
     points_path.append(position)
     #print(turning_radius)
     return points_path
+
+def mean_length_path(arr):
+    total_length=0.0
+    coords=arr[:,:2]
+    for i in range(1, coords.shape[0]):
+        x1, y1 = coords[i-1]
+        x2, y2 = coords[i]
+
+        # Calculate the Euclidean distance between consecutive points
+        distance = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+        # Add the distance to the total length
+        total_length += distance
+
+    return total_length
+
+def manhattan(arr):
+    a=arr[0,:]
+    b=arr[-1,:]
+    return sum(abs(val1-val2) for val1, val2 in zip(a,b))
+
+    
