@@ -13,13 +13,13 @@ import numpy as np
 from functools import partial
 from math import sin, cos
 from shapely import Polygon
-from helper import func_arc
+from trajectory import generate_spline
 class RRT():
 
     def __init__(self,staticObstacles=None, wallObstacles=None):
         
         # Public attributes
-        self.space = ob.DubinsStateSpace(2.5, False)
+        self.space = ob.DubinsStateSpace(2.0, False)
         
         #self.space = ob.SE2StateSpace()
         # set the bounds for the R^2 part of SE(2)
@@ -48,7 +48,7 @@ class RRT():
         #self.ss.setStatePropagator(oc.StatePropagatorFn(self.propagate))
         #self.si.setPropagationStepSize(.6)
         self.planner=og.RRT(self.si)
-        self.planner.setRange(0.5)
+        self.planner.setRange(0.6)
         self.planner.setGoalBias(0.1)
 
     def plan(self, start, goal):
@@ -77,9 +77,8 @@ class RRT():
             self.states_final=self.data_array[:,0:3]
             #self.controls=self.data_array[:,3:5]
             #print(self.controls)
-            #park_path=func_arc(self.states_final[-1],0.8,1.8)
-            #trajectory_points=np.concatenate((self.states_final,park_path))
-            trajectory_points=self.states_final
+            park_path=generate_spline(self.states_final[-1],1.2,2.0,"counter_clockwise")
+            trajectory_points=np.concatenate((self.states_final,np.array(park_path)))
             with open(self.output_file, 'w') as file:
                 np.savetxt(file, trajectory_points, fmt='%.6f', delimiter=', ')
             print(f"Path saved to {self.output_file}")
@@ -90,8 +89,8 @@ class RRT():
     def carPolygon(self,x,y,yaw): #returns a polygon for the car given a position and heading
                
         #geometry of the car
-        carLength = 0.95
-        carWidth = 0.5
+        carLength = 1
+        carWidth = 0.45
         return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
                             (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),

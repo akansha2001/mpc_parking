@@ -35,7 +35,7 @@ class FileOp:
                 pass
           
         def write(self,arr):
-            if self.counter%50==0:
+            if self.counter==0:
                 # arr=np.array([value[0],value[1]])
                 with open(self.output_file, 'a') as f:
                     # create the csv writer

@@ -1,6 +1,6 @@
 import numpy as np
 from rrt import RRT
-from obstacles import static_obstacles, wall_obstacles
+# from obstacles import static_obstacles, wall_obstacles
 
 class GlobalPlanner:
     def __init__(self, planner_type="dummy",static_obstacles=None, wall_obstacles=None):

@@ -1,19 +1,34 @@
 import numpy as np
+from abc import ABC, abstractmethod
 from trajectory import Trajectory
 
-# TODO: chang local planner to pure pursuit using inheritance
-class LocalPlanner:
+class LocalPlanner(ABC):
+    @abstractmethod
+    def plan(self, robot):
+        pass
+
+class DummyLocalPlanner(LocalPlanner):
+    def __init__(self):
+        super().__init__()
+
+    def plan(self, robot):
+        # returns zero velocities
+        cmd = np.array([0.0, 0.0])
+        return cmd
+class PurePursuit(LocalPlanner):
     def __init__(self, trajectory: Trajectory, max_vel = 5):
-        self.trajectory = trajectory 
+        self.trajectory = trajectory
+        #print("Pure pursuit input trajectory",trajectory) 
         self.max_vel = max_vel        
         #! HARDCODED
         self.look_ahead_time = 1.0
-        self.speed_factor =  0.05
+        self.speed_factor =  0.15
         self.look_ahead_thresh = 0.1
         self.stop_thresh = 0.1
-        self.Kp = 1.0
+        self.Kp = 100
 
-    def plan(self, state):
+    def plan(self, robot):
+        state = robot.state
         # extracting necessary state variables
         u = state.get_forward_velocity()
         yaw = state.get_yaw()
@@ -21,7 +36,10 @@ class LocalPlanner:
         rear_y = state.get_rear_y()
 
         # finding the look ahead index from the trajectory
-        look_ahead_dist = self.look_ahead_time * u
+        # look_ahead_dist = 1.0
+        # if u >= 0.5:
+        look_ahead_dist = u * self.look_ahead_time
+        
         # finding the closest index on the trajectory
         dx = self.trajectory.cx - rear_x
         dy = self.trajectory.cy - rear_y
@@ -59,9 +77,13 @@ class LocalPlanner:
             delta = np.arctan2(2.0 * state.L * np.sin(alpha) / look_ahead_dist, 1.0)
         else:
             #print("warning: small lookahead distance!")
-            delta = state.steering  # basically no steering input needed
-    
+            delta = state.steering  # no steering input needed
+        
+        # delta = np.arctan2(2.0 * state.L * np.sin(alpha), look_ahead_dist)
+        
         cmd_omega =  self.Kp * float(delta - state.steering[0])
+        print(delta, state.steering[0])
+        print(cmd_omega)
         # cmd_omega = 2 * np.sin(alpha)/self.look_ahead_time
         goal_dist = state.get_distance(self.trajectory.cx[-1], self.trajectory.cy[-1])
         
@@ -77,3 +99,4 @@ class LocalPlanner:
         cmd = np.array([cmd_vel, cmd_omega])
         return cmd
         # return np.array([cmd_vel, 0.1])
+
