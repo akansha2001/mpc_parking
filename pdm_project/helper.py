@@ -30,16 +30,12 @@ class bcolors:
 class FileOp:
         def __init__(self, file_name):
             self.output_file=file_name
-            with open(self.output_file, 'a'):
-                pass
-          
+            open(self.output_file, 'w').close()
+                
         def write(self,arr):
-                # arr=np.array([value[0],value[1]])
-                with open(self.output_file, 'a') as f:
-                    # create the csv writer
-                    writer = csv.writer(f)
-                    # write a row to the csv file
-                    writer.writerow(['%.5f' % v for v in arr])
+            with open(self.output_file, 'a') as f:
+                self.writer = csv.writer(f)
+                self.writer.writerow(['%.5f' % v for v in arr])
 
 # def carPolygon(x,y,yaw): #returns a polygon for the car given a position and heading
 #     return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),

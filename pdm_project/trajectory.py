@@ -28,7 +28,15 @@ class State:
     def get_rear_y(self):
         rear_y = self.position[1] - (self.L / 2) * np.sin(self.position[2])
         return rear_y
+    
+    def get_front_x(self):
+        front_x = self.position[0] + (self.L / 2) * np.cos(self.position[2])
+        return front_x
 
+    def get_front_y(self):
+        front_y = self.position[1] + (self.L / 2) * np.sin(self.position[2])
+        return front_y
+    
     def get_distance(self, x, y):
         dx = x - self.position[0]
         dy = y - self.position[1]
