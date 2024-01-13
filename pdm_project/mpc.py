@@ -31,6 +31,7 @@ class MPC:
         self.max_phi = max_phi
         self.counter = 1
         self.K_pos = 0.7
+        self.min_dist = np.inf
 
 
     def setup_model(self, model_type):
@@ -183,7 +184,9 @@ class MPC:
         if centers_obstacles is not None:
             for i,center in enumerate(centers_obstacles):
                 self.mpc.set_nl_cons(expr_name="obstacle"+str(i+1),expr=(self.L + self.buffer)**2 - (self.x - center[0])**2 - (self.y - center[1])**2,ub=0)
-        
+                dist = np.linalg.norm(x0[0:2]-center, ord=2)
+                self.min_dist = np.min(dist, self.min_dist)
+                print("################## MIN DIST:", self.min_dist)
         # setup mpc
         self.mpc.setup()
         self.mpc.set_initial_guess()
