@@ -154,7 +154,8 @@ class ParkingLotEnv:
         delta = end - start
         print(bcolors.OKGREEN + "\n\nexecution time:", delta.total_seconds(), "s" + bcolors.ENDC)
         self.robots[idx].set_plan(global_plan, "mpc")
-        self.file_time.write(delta.total_seconds())
+        time=np.array([delta.total_seconds()])
+        self.file_time.write(time)
     def setup_env(self):
         """
         - sets up the environment for simulation
