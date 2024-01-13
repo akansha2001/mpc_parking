@@ -22,10 +22,12 @@ class PurePursuit(LocalPlanner):
         self.max_vel = max_vel        
         #! HARDCODED
         self.look_ahead_time = 1.0
-        self.speed_factor =  0.15
+        self.speed_factor =  0.35
         self.look_ahead_thresh = 0.1
         self.stop_thresh = 0.1
-        self.Kp = 100
+        self.Kp = 3
+        self.Kd = 0.0
+        self.prev_delta = 0
 
     def plan(self, robot):
         state = robot.state
@@ -71,19 +73,18 @@ class PurePursuit(LocalPlanner):
         alpha = np.arctan2(ty - rear_y, tx - rear_x) - yaw
 
         # checking whether lookahead distance is large enough
-        if look_ahead_dist > self.look_ahead_thresh:
+        # if look_ahead_dist > self.look_ahead_thresh:
             # steering angle = invtan(2Lsin(alpha)/Ld)
             # as established steering control law for pure pursuit controller
-            delta = np.arctan2(2.0 * state.L * np.sin(alpha) / look_ahead_dist, 1.0)
-        else:
+        delta = np.arctan2(2.0 * state.L * np.sin(alpha), look_ahead_dist)
+        # else:
             #print("warning: small lookahead distance!")
-            delta = state.steering  # no steering input needed
+            # delta = state.steering  # no steering input needed
         
         # delta = np.arctan2(2.0 * state.L * np.sin(alpha), look_ahead_dist)
-        
-        cmd_omega =  self.Kp * float(delta - state.steering[0])
-        print(delta, state.steering[0])
-        print(cmd_omega)
+        print("delta:", delta)
+        cmd_omega =  self.Kp * float(delta - state.steering[0]) + self.Kd * (delta - self.prev_delta)
+        print("PURE PURSUIT COMMAND:", cmd_omega)
         # cmd_omega = 2 * np.sin(alpha)/self.look_ahead_time
         goal_dist = state.get_distance(self.trajectory.cx[-1], self.trajectory.cy[-1])
         

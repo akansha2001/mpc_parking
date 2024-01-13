@@ -171,9 +171,6 @@ class MPC:
         # getting the optimal step
         x0 = np.append(state.position, state.steering)
         self.mpc.x0 = x0
-
-        print("Position self:",x0)
-        print("Position target:",x_target)
         
         # mterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
         # lterm = (x_target[0] - x)**2 + (x_target[1] - y)**2 + (x_target[2] - yaw)**2 + delta**2
@@ -185,8 +182,10 @@ class MPC:
             for i,center in enumerate(centers_obstacles):
                 self.mpc.set_nl_cons(expr_name="obstacle"+str(i+1),expr=(self.L + self.buffer)**2 - (self.x - center[0])**2 - (self.y - center[1])**2,ub=0)
                 dist = np.linalg.norm(x0[0:2]-center, ord=2)
-                self.min_dist = np.min(dist, self.min_dist)
-                print("################## MIN DIST:", self.min_dist)
+                if dist < self.min_dist:
+                    self.min_dist = dist 
+                # self.min_dist = np.min(dist, self.min_dist)
+                # print("################## MIN DIST:", self.min_dist)
         # setup mpc
         self.mpc.setup()
         self.mpc.set_initial_guess()
@@ -197,5 +196,5 @@ class MPC:
         
         u0 = self.mpc.make_step(x0) 
         u0 = u0.ravel()
-        print("\n\ncmd: ", u0)
+        # print("\n\ncmd: ", u0)
         return u0

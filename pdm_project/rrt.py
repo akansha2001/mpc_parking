@@ -52,7 +52,7 @@ class RRT():
         self.planner.setGoalBias(0.1)
 
     def plan(self, start, goal):
-        print(goal)
+        # print(goal)
         x_start ,y_start ,yaw_start = start[0], start[1], start[2]
         x_goal = goal[0]
         y_goal = goal[1]

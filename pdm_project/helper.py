@@ -213,5 +213,5 @@ def func_arc(x_initial,b,R,theta):
     x_parking_spot[2]=np.pi/2 + flag*(np.pi/2)
     points_path.append(x_parking_spot)
     points_path_array=np.array(points_path)
-    print(points_path_array.shape)
+    # print(points_path_array.shape)
     return points_path_array

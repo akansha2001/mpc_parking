@@ -11,12 +11,10 @@ class DummyPlanner:
         waypoints = [start + np.array([5.0, 0.0, 0.0]),start + np.array([5.0, 5.0, 0.0]),
                     start + np.array([0.0, 5.0, 0.0])]
         # waypoints =[start + np.array([10.0, 10.0, 0.0]),start + np.array([10.0, 10.0, 0.0])]
-        print("WAYPOINTS:\n", waypoints)
+        # print("WAYPOINTS:\n", waypoints)
 
         for i in range(len(waypoints)-1):
             for j in range(steps):
                 path.append(waypoints[i]+j*(waypoints[i+1]-waypoints[i])/steps)
-        
-        # path =[start + np.array([10.0, 10.0, 0.0])]
-        print(path)
+
         return path

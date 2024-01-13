@@ -80,8 +80,8 @@ for i in range(len(x_path)):
         obstacle_polygon = wallPolygon(obstacles)
         intersection = obstacle_polygon.intersects(car_polygon)
         #cross = car_polygon.crosses(obstacle_polygon)
-        if intersection:
-            print("Collision")
+        # if intersection:
+        #     print("Collision")
         #list_cross.append(cross)
     
 

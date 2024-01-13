@@ -67,7 +67,7 @@ class Robot:
                 angle = np.arctan2(position_obstacle[1] - position_self[1],position_obstacle[0] - position_self[0])
                 distance = np.linalg.norm(position_obstacle[:2] - position_self[:2],ord=2)
 
-                print(position_self[2] - angle_tolerance <= angle <= position_self[2] + angle_tolerance, distance <= distance_tolerance)
+                # print(position_self[2] - angle_tolerance <= angle <= position_self[2] + angle_tolerance, distance <= distance_tolerance)
                 if position_self[2] - angle_tolerance <= angle <= position_self[2] + angle_tolerance and distance <= distance_tolerance:
                     centers_obstacles.append(position_obstacle[:2])
             return centers_obstacles
@@ -77,11 +77,13 @@ class ParkingLotEnv:
     """
     #! move hardcoded variables
     #GOAL = np.array([-2.6,2.4, np.pi/2]) # goal of the robot
-    GOAL = np.array([-2.3, -0.8, np.pi/2])
     START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
-    CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.2,0],[-5.0,0.0,np.pi],[-5.0,-2.4,np.pi],[-0.9,0,0]
-    ,[-3.9,-3.6,np.pi/2]])  # car spawn locations
+    # GOAL = START
+    GOAL = np.array([-2.3, -0.8, np.pi/2])
+    CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.2,0],[-5.0,0.0,np.pi],[-5.0,-2.4, np.pi], [-0.9, 0, 0]
+    ,[-5.4,-3.6,0]])  # car spawn locations
     DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
+    DYNAMIC_CAR_GOAL = CAR_SPAWN_LOCATIONS[DYNAMIC_CAR_INDEX ]+ np.array([4.5, 0, 0])
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
     DYNAMIC_CAR_PATH_LOG_FILE = "data/dynamic_car_pos.csv"
     ROBOT_PATH_LOG_FILE="data/robot_pos.csv"
@@ -132,8 +134,8 @@ class ParkingLotEnv:
             rob_spawn_pos_list.append(self.enemies[i].spawn_pos)
             goal_pos_list = [self.enemies[i].spawn_pos]
             if i == ParkingLotEnv.DYNAMIC_CAR_INDEX:
-                points_path=generate_spline(self.enemies[i].spawn_pos, offset = 0.5, turning_radius = 2.4)
-                final_path=goal_pos_list+points_path
+                # points_path=generate_spline(self.enemies[i].spawn_pos, offset = 0.5, turning_radius = 2.4)
+                final_path= [ParkingLotEnv.DYNAMIC_CAR_GOAL]
                 #Storing final_path into csv file
                 
                 with open("data/dynamic_car_planned_pos.txt", 'w') as file:
@@ -204,6 +206,7 @@ class ParkingLotEnv:
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
                 robot.obstacles = self.dynamic_obstacles
+                print(robot.state.steering)
         
         for i, enemy in enumerate(self.enemies):
             enemy_name = "robot_"+ str(i + self.n_robots)
@@ -217,7 +220,6 @@ class ParkingLotEnv:
                     setattr(enemy.state, key, np.array(value))
 
         self.dynamic_obstacles = [self.enemies[ParkingLotEnv.DYNAMIC_CAR_INDEX]]
-
 
     def get_action(self):
         """

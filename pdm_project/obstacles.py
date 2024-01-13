@@ -54,7 +54,7 @@ def create_parking_positions(length_x, length_y, height, road_width):
         for j in range(len(parking_lot_y)):
             position = [parking_lot_x[i], parking_lot_y[j], height / 2]
             parking_positions.append(position)
-    print(parking_positions)
+    # print(parking_positions)
     return parking_positions
 
 

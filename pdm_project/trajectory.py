@@ -39,7 +39,7 @@ class Trajectory:
         # converting to an np array
         try:
             points = np.array(points)
-            print("Trajectory input:",points)
+            # print("Trajectory input:",points)
         except (TypeError, ValueError) as e:
             raise ValueError(f"error converting input to an np array: {e}")
 
