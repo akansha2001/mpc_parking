@@ -26,7 +26,7 @@ class Robot:
         if model.lower() != "prius":
             raise Exception("Invalid model. Only 'prius' model is supported.")
 
-        print(f"\nRobot {self.name} spawning at ({spawn_pos[0]}, {spawn_pos[1]})")
+        print(f"Robot {self.name} spawning at ({spawn_pos[0]}, {spawn_pos[1]})")
         # creating a Prius model instance with "vel" mode
         self.model = Prius(mode="vel")
         self.wheel_base = self.model._wheel_distance
@@ -206,7 +206,6 @@ class ParkingLotEnv:
                 for key, value in joint_state_data.items():
                     setattr(robot.state, key, np.array(value))
                 robot.obstacles = self.dynamic_obstacles
-                print(robot.state.steering)
         
         for i, enemy in enumerate(self.enemies):
             enemy_name = "robot_"+ str(i + self.n_robots)

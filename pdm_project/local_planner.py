@@ -82,9 +82,7 @@ class PurePursuit(LocalPlanner):
             # delta = state.steering  # no steering input needed
         
         # delta = np.arctan2(2.0 * state.L * np.sin(alpha), look_ahead_dist)
-        print("delta:", delta)
         cmd_omega =  self.Kp * float(delta - state.steering[0]) + self.Kd * (delta - self.prev_delta)
-        print("PURE PURSUIT COMMAND:", cmd_omega)
         # cmd_omega = 2 * np.sin(alpha)/self.look_ahead_time
         goal_dist = state.get_distance(self.trajectory.cx[-1], self.trajectory.cy[-1])
         
