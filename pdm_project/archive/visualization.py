@@ -1,119 +1,156 @@
+
+
+
 import numpy as np
 import matplotlib.pyplot as plt
-import pygame
-import threading
-import sys
+from obstacles import generate_scene
+from shapely import Polygon
 
-VIS_HZ = 10
-PIXELS_PER_METER = 10  # Adjust this value based on your needs
+#for plotting polygons
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
+from matplotlib.collections import PatchCollection
+from shapely import wkt
 
-def meters_to_pixels(meters):
-    return int(meters * PIXELS_PER_METER)
+static_obstacles, wall_obstacles = generate_scene()
 
-class Obstacle:
-    OBSTACLE_TYPES = ["wall", "box", "circle"]
-    def __init__(self, obstacle_type, position, size):
-        if obstacle_type not in self.OBSTACLE_TYPES:
-            raise ValueError(f"invalid obstacle! Allowed types: {', '.join(self.OBSTACLE_TYPES)}")
-        self.type = obstacle_type
-        self.position = position
-        self.size = size
+def plot_polygon(ax, poly, **kwargs):
+    path = Path.make_compound_path(
+        Path(np.asarray(poly.exterior.coords)[:, :2]),
+        *[Path(np.asarray(ring.coords)[:, :2]) for ring in poly.interiors])
 
-    def get_position(self):
-        return self.position
-
-    def get_size(self):
-        return self.size
-
-class Visualizer:
-    def __init__(self, live_plot_flag = True, robot_position = np.zeros(3), obstacles = [], grid_size = (800,600)):
-        self.live_plot_flag = live_plot_flag
-        self.hz = VIS_HZ
-        # assigning empty paths
-        self.actual_path = []   # actual path traced by the robot
-        self.paths = []         # list of paths that you want to plot
-        self.grid_size = grid_size
-        self.lw = 0.05          # 5 cm
-        self.update(robot_position, obstacles)
-
-        # initializing pygame here
-        pygame.init()
-        self.screen = pygame.display.set_mode(grid_size)
-        pygame.display.set_caption("Parking Lot Visualization")
-
-        # launching the game loop in a separate thread
-        self.game_thread = threading.Thread(target=self.game_loop)
-        self.game_thread.daemon = True
-        self.game_thread.start()
-        
-    def update(self, robot_position = [], obstacles = []):
-        if len(robot_position) > 0:
-            self.robot_position = robot_position
-            self.actual_path.append((robot_position[0], robot_position[1]))
-        if len(obstacles) > 0:
-            self.obstacles = obstacles
-
-    def set_line_width(self, lw):
-        self.lw = lw  
-
-    def plot_path(self, path, colour = "red"):
-        # TODO: plot the path here
-        pass
+    patch = PathPatch(path, **kwargs)
+    collection = PatchCollection([patch], **kwargs)
     
-    def plot_point(self, point):
-        # TODO: plot the point here
-        pass
-
-    def draw_elements(self):
-        # clearing the screen
-        self.screen.fill((255, 255, 255))
-        # drawing obstacles
-        for obstacle in self.obstacles:
-            x, y, _ = obstacle.get_position()
-            x *= PIXELS_PER_METER
-            y *= PIXELS_PER_METER
-
-            if obstacle.type == "wall":
-                # plotting lines for wall boundaries (leave unimplemented)
-                pass
-            elif obstacle.type == "box":
-                # assuming regular polygons
-                size = obstacle.get_size()
-                size_x, size_y = size[0] * PIXELS_PER_METER, size[1] * PIXELS_PER_METER
-                pygame.draw.rect(self.screen, (0, 0, 255), (x, y, size_x, size_y))
-            elif obstacle.type == "circle":
-                radius = obstacle.get_size() * PIXELS_PER_METER
-                pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), int(radius))
+    ax.add_collection(collection, autolim=True)
+    ax.autoscale_view()
+    return collection
 
 
-        # drawing the robot
-        pygame.draw.rect(self.screen, (0, 255, 0), (self.robot_position[0], self.robot_position[1], 30, 30))
-        # drawing paths
-        if len(self.actual_path) > 1:
-            pygame.draw.lines(self.screen, pygame.Color("blue"), False, self.actual_path, self.lw)
-        pygame.display.flip()
+# Load the path data from the generated text file
+path_data = np.genfromtxt('data/path_output.txt', delimiter=', ')
 
-    def game_loop(self):
-        # TODO: implement the game loop
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+# Extract x, y coordinates from the path data
+x_path = path_data[:, 0]
+y_path = path_data[:, 1]
+yaw_path = path_data[:,2]
 
-            # draw stuff
-            self.draw_elements()
-            # pygame.display.flip()
-            pygame.time.Clock().tick(self.hz)
-     
-if __name__ == "__main__":
-    # obstacle list
-    obstacles = [
-        Obstacle("box", (3, 1, 0), (2, 1)),
-        Obstacle("circle", (1, 1, 0), 1)
-    ]
-    # sample robot
-    robot_position = np.array([500, 500, np.radians(45)])
-    visualizer = Visualizer(robot_position=robot_position, obstacles=obstacles)
-    # Start the game loop
-    visualizer.game_thread.join()
+actual_path_data = np.genfromtxt('data/robot_pos.csv', delimiter=',')
+#Extract x, y coordinates from the actual path
+x_actual_path = actual_path_data[:, 0]
+y_actual_path = actual_path_data[:, 1]
+yaw_actual_path = actual_path_data[:,2]
+
+
+#geometry of the car
+carLength = 0.9
+carWidth = 0.4
+
+def carPolygon(x,y,yaw): #returns a polygon for the car given a position and heading
+    
+    return Polygon(shell=((x + carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
+                     (x - carLength/2*np.cos(yaw) + carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) - carWidth/2*np.cos(yaw)),
+                     (x - carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y - carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw)),
+                     (x + carLength/2*np.cos(yaw) - carWidth/2*np.sin(yaw), y + carLength/2*np.sin(yaw) + carWidth/2*np.cos(yaw))))
+
+def obstaclePolygon(obstacle):
+    position = np.array([obstacle.position()[0], obstacle.position()[1]])
+    width = obstacle.width()
+    length = obstacle.length()
+    return Polygon(shell=((position[0]+width/2, position[1]+length/2),
+                                    (position[0]+width/2, position[1]-length/2),
+                                    (position[0]-width/2, position[1]-length/2),
+                                    (position[0]-width/2, position[1]+length/2)))
+
+def wallPolygon(obstacle):
+    position = np.array([obstacle.position()[0], obstacle.position()[1]])
+    width = obstacle.length() #along x
+    length = obstacle.width() #along y
+    return Polygon(shell=((position[0]+width/2, position[1]+length/2),
+                                    (position[0]+width/2, position[1]-length/2),
+                                    (position[0]-width/2, position[1]-length/2),
+                                    (position[0]-width/2, position[1]+length/2)))
+
+list_intersection = []
+list_cross = []
+
+for i in range(len(x_path)):
+    car_polygon = carPolygon(x_path[i], y_path[i], yaw_path[i])
+    for obstacles in static_obstacles + wall_obstacles:
+        obstacle_polygon = wallPolygon(obstacles)
+        intersection = obstacle_polygon.intersects(car_polygon)
+        #cross = car_polygon.crosses(obstacle_polygon)
+        # if intersection:
+        #     print("Collision")
+        #list_cross.append(cross)
+    
+
+from matplotlib.patches import Rectangle
+from matplotlib.animation import FuncAnimation
+from IPython.display import HTML, display
+# Initialize empty plot for the car
+#patch = patches.Polygon(v,closed=True, fc='r', ec='r')
+
+# Initialize empty plot for the path
+fig, ax = plt.subplots()
+line1 = ax.plot(x_path, y_path, label='Planned Path')[0]
+line2 = ax.plot(x_actual_path, y_actual_path, label='Actual Path')[0]
+
+# Initialize empty plot for the car
+# patch = plt.Rectangle((x_path[0] - carWidth / 2, y_path[0] - carLength / 2), carWidth, carLength,
+#                        angle=np.degrees(yaw_path[0]), edgecolor='r', facecolor='none', label='Car')
+# ax.add_patch(patch)
+plt.plot(x_path[0], y_path[0], 'go', label = 'Start')
+plt.plot(x_path[-1], y_path[-1], 'bo', label = 'End')
+# Initialize obstacle plots
+obstacle_plots = []
+wall_plots = []
+
+# for obstacle in static_obstacles + wall_obstacles:
+#     obstacle_position = np.array([obstacle.position()[1], obstacle.position()[0]])
+#     obstacle_width = obstacle.width()   #along x
+#     obstacle_height = obstacle.length() #along y
+#     rect = plt.Rectangle((obstacle_position[0] - obstacle_width / 2, obstacle_position[1] - obstacle_height / 2),
+#                         obstacle_width, obstacle_height, color='red', alpha=0.5)
+#     obstacle_plots.append(rect)
+#     ax.add_patch(rect)
+
+
+for obstacle in static_obstacles + wall_obstacles:
+    obstacle_polygon = wallPolygon(obstacle)
+    plt.plot(*obstacle_polygon.exterior.xy, color ='red')
+    
+# Set plot limits and labels
+plt.xlim([-12, 12])
+plt.ylim([-12, 12])
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.title('Path Planning with Obstacles')
+plt.legend()
+plt.minorticks_on()
+plt.grid(which='minor', linestyle=':', linewidth='0.5')
+
+
+# Plot the path
+fig, ax = plt.subplots()
+plt.plot(x_path, y_path, label='Planned Path', color='gray')
+plt.plot(x_path[0], y_path[0], 'go', label = 'Start')
+plt.plot(x_path[-1], y_path[-1], 'bo', label = 'End')
+plt.plot()
+#print(len(static_obstacles))
+# Plot obstacles
+for obstacle in static_obstacles:
+    obstacle_position = np.array([obstacle.position()[0], obstacle.position()[1]])
+    obstacle_width = obstacle.width()
+    obstacle_height = obstacle.length()
+    rect = plt.Rectangle((obstacle_position[0] - obstacle_width / 2, obstacle_position[1] - obstacle_height / 2),
+                            obstacle_width, obstacle_height, color='red', alpha=0.5)
+    plt.gca().add_patch(rect)
+for obstacle in wall_obstacles:
+    obstacle_position = np.array([obstacle.position()[1], obstacle.position()[0]])
+    obstacle_width = obstacle.width()
+    obstacle_height = obstacle.length()
+    rect = plt.Rectangle((obstacle_position[0] - obstacle_width / 2, obstacle_position[1] - obstacle_height / 2),
+                            obstacle_width, obstacle_height, color='black', alpha=0.5)
+    plt.gca().add_patch(rect)
+plt.show()

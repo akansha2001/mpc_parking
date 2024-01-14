@@ -11,8 +11,8 @@ import time
 from obstacles import generate_scene
 from helper import FileOp
 from helper import bcolors
-from mpc import MPC
 import datetime
+# from mpc import MPC
 
 '''
 The Robot class describes a robot :). It contains the robot model (from class Prius), the local planner and global planner objects as class member variables.
@@ -41,7 +41,6 @@ class Robot:
         # initializing a global planner of a certain 'type'
 
     def set_plan(self, global_plan, controller_type = ""):
-        # TODO: move local planner to the parking lot env
         if controller_type.lower() == "mpc":
             self.local_planner = MPC(Trajectory(global_plan))  # creating a LocalPlanner instance
         elif controller_type.lower() == "pure_pursuit":
@@ -56,8 +55,7 @@ class Robot:
         # currently getting the target from the local planner based on the current position
         return self.local_planner.plan(self)
 
-    def extract_obstacles(self,distance_tolerance, angle_tolerance = 0.65):
-        # TODO: tolerances tuning
+    def extract_obstacles(self,distance_tolerance, angle_tolerance = 0.6):
         if self.obstacles is not None:
             position_self = self.state.position
             centers_obstacles = []
@@ -75,19 +73,31 @@ class ParkingLotEnv:
     """
     Environment class for simulating a parking lot scenario with multiple robots.
     """
-    #! move hardcoded variables
-    #GOAL = np.array([-2.6,2.4, np.pi/2]) # goal of the robot
-    START = np.array([-2.5515, -8.9231, np.pi/2])   # start of the robot
-    # GOAL = START
+
+    # constants for start and goal positions
+    START = np.array([-2.5515, -8.9231, np.pi/2])
     GOAL = np.array([-2.3, -0.8, np.pi/2])
-    CAR_SPAWN_LOCATIONS = np.array([[-0.9,1.2,0],[-5.0,0.0,np.pi],[-5.0,-2.4, np.pi], [-0.9, 0, 0]
-    ,[-5.4,-3.6,0]])  # car spawn locations
-    DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1    # represents the dynamic cars
-    DYNAMIC_CAR_GOAL = CAR_SPAWN_LOCATIONS[DYNAMIC_CAR_INDEX ]+ np.array([4.5, 0, 0])
+
+    # car spawn locations
+    CAR_SPAWN_LOCATIONS = np.array([
+        [-0.9, 1.2, 0],
+        [-5.0, 0.0, np.pi],
+        [-5.0, -2.4, np.pi],
+        [-0.9, 0, 0],
+        [-5.4, -3.6, 0]
+    ])
+
+    # index representing the dynamic cars
+    DYNAMIC_CAR_INDEX = CAR_SPAWN_LOCATIONS.shape[0] - 1
+    # goal for the dynamic car
+    DYNAMIC_CAR_GOAL = CAR_SPAWN_LOCATIONS[DYNAMIC_CAR_INDEX] + np.array([4.5, 0, 0])
+    # no. of cars
     N_CARS = CAR_SPAWN_LOCATIONS.shape[0]
+    # paths to logging files
     DYNAMIC_CAR_PATH_LOG_FILE = "data/dynamic_car_pos.csv"
-    ROBOT_PATH_LOG_FILE="data/robot_pos.csv"
-    TIME_LOG_FILE="data/time_exec.csv"
+    ROBOT_PATH_LOG_FILE = "data/robot_pos.csv"
+    TIME_LOG_FILE = "data/time_exec.csv"
+    
     def __init__(self, render=True, stat_obs_flag = True):
         """
         - the constructor initializes the robots and sets the local and global planner 

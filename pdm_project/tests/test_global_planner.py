@@ -1,7 +1,6 @@
 # from rrt import RRT
 import numpy as np
 #from dummy_planner import DummyPlanner
-from rrt import RRT
 from obstacles import static_obstacles, wall_obstacles, parking_lot
 class GlobalPlanner:
     def __init__(self, planner_type="dummy",static_obstacles=None, wall_obstacles=None):

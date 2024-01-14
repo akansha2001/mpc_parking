@@ -88,5 +88,3 @@ sudo apt install pypy3
 ```
 
 3) After this open the downloaded script install-ompl-ubuntu.sh and comment out all the wget lines inside install_ompl()
-
-Done!! 
