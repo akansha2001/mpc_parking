@@ -1,5 +1,5 @@
 # Integrated Motion Planning for Autonomous Vehicle Navigation in Dynamic Parking Environments
-Planning and Decision Making Project Q2
+
 ## Installation
 1. Install `gym_urdf_envs`
     * Installation from pip (Recommended) 
