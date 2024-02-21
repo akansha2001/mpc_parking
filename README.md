@@ -1,4 +1,4 @@
-# PDM_Project
+# Integrated Motion Planning for Autonomous Vehicle Navigation in Dynamic Parking Environments
 Planning and Decision Making Project Q2
 ## Installation
 1. Install `gym_urdf_envs`
@@ -20,7 +20,7 @@ Planning and Decision Making Project Q2
     ```
     You can test the installation by:
     ```bash
-    cd pdm_project/tests
+    cd mpc_parking/tests
     python3 test_mpc.py
     ```
 
@@ -37,7 +37,7 @@ Planning and Decision Making Project Q2
 ## Usage
 ### Running the Simulation
 ```bash
-cd pdm_project
+cd mpc_parking
 python3 sim.py
 ```
 ### Using the Environment in your code
